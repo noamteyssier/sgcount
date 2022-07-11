@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 fxread = { path = "../fxread" }
+anyhow = "1"
