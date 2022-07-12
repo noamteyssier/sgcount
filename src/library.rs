@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use anyhow::Result;
 use anyhow;
+use anyhow::Result;
+use std::collections::HashMap;
 use fxread::{Record, FastxRead};
 
 type FxReader = Box<dyn FastxRead<Item = Record>>;
@@ -10,27 +10,27 @@ pub struct Library {
     size: usize
 }
 impl Library {
+
     pub fn from_reader(reader: FxReader) -> Result<Self> {
         let table = Self::table_from_reader(reader);
         let size = Self::calculate_base_size(&table)?;
         Ok( Self { table, size } )
     }
 
-    fn calculate_base_size(table: &HashMap<String, String>) -> Result<usize> {
-        // determine base length
-        let base_len = table
-            .keys()
-            .next()
-            .expect("Empty Library")
-            .len();
+    fn validate_unique_size(keys: Vec<&String>) -> bool {
+        keys
+            .windows(2)
+            .map(|x| (x[0], x[1]))
+            .all(|(x, y)| x.len() == y.len())
+    }
 
-        // compare all keys to base length
-        match table
-            .keys()
-            .map(|x| x.len())
-            .all(|x| x == base_len) 
-            {
-                true => Ok(base_len),
+    fn get_key_size(table: &HashMap<String, String>) -> usize {
+        table.keys().next().unwrap().len()
+    }
+
+    fn calculate_base_size(table: &HashMap<String, String>) -> Result<usize> {
+        match Self::validate_unique_size(table.keys().collect()) {
+                true => Ok(Self::get_key_size(table)),
                 false => Err(anyhow::anyhow!("Library sequence sizes are inconsistent"))
             }
     }
