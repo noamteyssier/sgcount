@@ -1,6 +1,6 @@
-use std::{fs::File, io::Write};
 use anyhow::Result;
 use super::{Counter, Library};
+use std::{fs::File, io::Write};
 
 fn write_to_path(path: &str, iterable: impl Iterator<Item = String>) -> Result<()>
 {
