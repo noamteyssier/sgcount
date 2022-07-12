@@ -48,6 +48,15 @@ impl Library {
         self.table.contains_key(token)
     }
 
+    pub fn alias(&self, token: &str) -> Option<&String> {
+        self.table.get(token)
+        
+    }
+
+    pub fn keys(&self) -> impl Iterator<Item = &String> {
+        self.table.keys()
+    }
+
     pub fn size(&self) -> usize {
         self.size
     }

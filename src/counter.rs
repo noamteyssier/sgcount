@@ -7,13 +7,13 @@ pub struct Counter {
 impl Counter {
     pub fn new(
         trimmer: Trimmer,
-        library: Library) -> Self {
+        library: &Library) -> Self {
 
         let results = Self::count(trimmer, library);
         Self { results }
     }
 
-    fn count(trimmer: Trimmer, library: Library) -> HashMap<String, usize> {
+    fn count(trimmer: Trimmer, library: &Library) -> HashMap<String, usize> {
         trimmer
             .into_iter()
             .map(|x| x.seq().to_string())
@@ -24,13 +24,11 @@ impl Counter {
             })
     }
 
-    pub fn pprint(&self) {
-        self.results
-            .iter()
-            .for_each(|(k, v)| println!("{}\t{}", k, v));
+    pub fn get_value(&self, token: &str) -> &usize {
+        match self.results.get(token) {
+            Some(c) => c,
+            None => &0
+        }
     }
 
-    pub fn results(&self) -> &HashMap<String, usize> {
-        &self.results
-    }
 }
