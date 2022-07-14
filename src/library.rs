@@ -64,7 +64,7 @@ impl Library {
         }
     }
 
-    pub fn alias(&self, token: &str) -> Option<&String> {
+    fn alias(&self, token: &str) -> Option<&String> {
         self.table.get(token)
     }
 
@@ -78,5 +78,39 @@ impl Library {
 
     pub fn size(&self) -> usize {
         self.size
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use fxread::{FastaReader, FastxRead, Record};
+    use super::Library;
+
+    fn reader() -> Box<dyn FastxRead<Item = Record>> {
+        let sequence: &'static [u8] = b">seq.0\nACTG\n";
+        Box::new(FastaReader::new(sequence))
+    }
+
+    #[test]
+    fn build() {
+        let library = Library::from_reader(reader()).unwrap();
+        assert_eq!(library.size(), 4);
+        assert_eq!(library.keys().count(), 1);
+    }
+
+    #[test]
+    fn validate_hamming_0() {
+        let library = Library::from_reader(reader()).unwrap();
+        assert_eq!(library.contains("ACTG", 0), Some(&String::from("seq.0")));
+        assert_eq!(library.contains("ACTT", 0), None);
+    }
+
+    #[test]
+    fn validate_hamming_1() {
+        let library = Library::from_reader(reader()).unwrap();
+        assert_eq!(library.contains("ACTG", 1), Some(&String::from("seq.0")));
+        assert_eq!(library.contains("ACTT", 1), Some(&String::from("seq.0")));
+        assert_eq!(library.contains("AGTT", 1), None);
     }
 }
