@@ -2,6 +2,7 @@ use anyhow;
 use anyhow::Result;
 use std::collections::HashMap;
 use fxread::{Record, FastxRead};
+use super::hamming_distance;
 
 type FxReader = Box<dyn FastxRead<Item = Record>>;
 
@@ -44,17 +45,35 @@ impl Library {
             .collect()
     }
 
-    pub fn contains(&self, token: &str) -> bool {
-        self.table.contains_key(token)
+    fn hamming_match(&self, token: &str, distance: usize) -> Option<&String> {
+        if distance > 0 {
+            self.keys()
+                .find(|x| hamming_distance(x, token) <= 1)
+        } else {
+            None
+        }
+    }
+
+    pub fn contains(&self, token: &str, distance: usize) -> Option<&String> {
+        match self.table.contains_key(token) {
+            true => self.alias(token),
+            false => match self.hamming_match(token, distance) {
+                Some(s) => self.alias(s),
+                _ => None
+            }
+        }
     }
 
     pub fn alias(&self, token: &str) -> Option<&String> {
         self.table.get(token)
-        
     }
 
     pub fn keys(&self) -> impl Iterator<Item = &String> {
         self.table.keys()
+    }
+
+    pub fn values(&self) -> impl Iterator<Item = &String> {
+        self.table.values()
     }
 
     pub fn size(&self) -> usize {
