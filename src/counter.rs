@@ -7,19 +7,20 @@ pub struct Counter {
 impl Counter {
     pub fn new(
         trimmer: Trimmer,
-        library: &Library) -> Self {
+        library: &Library,
+        distance: usize) -> Self {
 
-        let results = Self::count(trimmer, library);
+        let results = Self::count(trimmer, library, distance);
         Self { results }
     }
 
-    fn count(trimmer: Trimmer, library: &Library) -> HashMap<String, usize> {
+    fn count(trimmer: Trimmer, library: &Library, distance: usize) -> HashMap<String, usize> {
         trimmer
             .into_iter()
             .map(|x| x.seq().to_string())
-            .filter(|x| library.contains(x))
+            .filter_map(|x| library.contains(&x, distance))
             .fold(HashMap::new(), |mut accum, x| {
-                *accum.entry(x).or_insert(0) += 1;
+                *accum.entry(x.to_string()).or_insert(0) += 1;
                 accum
             })
     }
@@ -30,5 +31,4 @@ impl Counter {
             None => &0
         }
     }
-
 }
