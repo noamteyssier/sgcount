@@ -1,85 +1,65 @@
+use clap::Parser;
 use anyhow::Result;
-use clap::{App, Arg, ArgMatches};
 
 mod library;
 mod trimmer;
 mod counter;
 mod results;
-mod hamming;
+mod permutes;
 
 use fxread::initialize_reader;
 use library::Library;
 use trimmer::Trimmer;
 use counter::Counter;
-use hamming::hamming_distance;
+use permutes::Permuter;
 use results::write_results;
 
 
-fn get_args() -> ArgMatches {
-    App::new("sgcount")
-        .version("0.1.0")
-        .author("Noam Teyssier")
-        .about("Maps sgRNA counts for multiple fastq files")
-        .arg(Arg::with_name("library")
-            .short('l')
-            .long("library")
-            .value_name("LIBRARY")
-            .help("Sets a library fasta file to match against")
-            .takes_value(true)
-            .required(true))
-        .arg(Arg::with_name("inputs")
-            .help("Input fastq file[s] to process")
-            .short('i')
-            .long("input")
-            .value_name("INPUTS")
-            .min_values(1)
-            .required(true))
-        .arg(Arg::with_name("output")
-            .help("output file path to write tab-delim to")
-            .short('o')
-            .long("output")
-            .value_name("OUTPUT")
-            .takes_value(true)
-            .required(false))
-        .arg(Arg::with_name("offset")
-            .help("sequence offset from prefix to begin matching")
-            .short('n')
-            .long("offset")
-            .value_name("OFFSET")
-            .takes_value(true)
-            .required(false)
-            .default_value("0"))
-        .arg(Arg::with_name("hamming")
-            .help("hamming distance to accept (default = 0)")
-            .short('d')
-            .long("distance")
-            .value_name("DISTANCE")
-            .takes_value(true)
-            .required(false)
-            .default_value("0"))
-        .get_matches()
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+
+    /// Filepath of the library
+    #[clap(short, long, value_parser)]
+    library_path: String,
+
+    /// Filepath(s) of fastx (fastq, fasta, *.gz) sequences to map
+    #[clap(short, long, value_parser, min_values=1, required=true)]
+    input_paths: Vec<String>,
+
+    /// Output filepath [default: stdout]
+    #[clap(short, long, value_parser)]
+    output_path: Option<String>,
+
+    /// Adapter Offset
+    #[clap(short='n', long, value_parser, default_value="0")]
+    offset: usize,
+
+    /// Allow One Off Matching
+    #[clap(short='d', long)]
+    oneoff: bool
 }
 
 fn main() -> Result<()> {
-    let matches = get_args();
-    let lib_path = matches.value_of("library").unwrap();
-    let input_paths: Vec<_> = matches.values_of("inputs").unwrap().collect();
-    let output_path = matches.value_of("output").unwrap_or("");
-    let offset = matches.value_of("offset").unwrap().parse::<usize>().unwrap();
-    let hamming = matches.value_of("hamming").unwrap().parse::<usize>().unwrap();
-
+    let args = Args::parse();
+    
     let library = Library::from_reader(
-        initialize_reader(lib_path)?
+        initialize_reader(&args.library_path)?
         )?;
     let size = library.size();
 
-    let results: Vec<Counter> = input_paths
+    let permuter = match args.oneoff {
+        true => Some(Permuter::new(library.keys())),
+        false => None
+    };
+
+    let results: Vec<Counter> = args.input_paths
         .into_iter()
-        .map(|x| initialize_reader(x).unwrap())
-        .map(|x| Trimmer::from_reader(x, offset, size))
-        .map(|x| Counter::new(x, &library, hamming))
+        .map(|x| initialize_reader(&x).unwrap())
+        .map(|x| Trimmer::from_reader(x, args.offset, size))
+        .map(|x| Counter::new(x, &library, &permuter))
         .collect();
 
-    write_results(output_path, &results, &library)?;
+    write_results(args.output_path, &results, &library)?;
     Ok(())
 }

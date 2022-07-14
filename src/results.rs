@@ -21,7 +21,7 @@ fn write_to_stdout(iterable: impl Iterator<Item = String>) -> Result<()>
 }
 
 pub fn write_results(
-        path: &str, 
+        path: Option<String>, 
         results: &Vec<Counter>,
         library: &Library) -> Result<()> 
 {
@@ -37,8 +37,8 @@ pub fn write_results(
                 })
         });
 
-    match path.is_empty() {
-        false => write_to_path(path, iterable),
-        true => write_to_stdout(iterable)
+    match path {
+        Some(p) => write_to_path(&p, iterable),
+        None => write_to_stdout(iterable)
     }
 }

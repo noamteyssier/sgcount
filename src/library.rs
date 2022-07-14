@@ -2,7 +2,6 @@ use anyhow;
 use anyhow::Result;
 use std::collections::HashMap;
 use fxread::{Record, FastxRead};
-use super::hamming_distance;
 
 type FxReader = Box<dyn FastxRead<Item = Record>>;
 
@@ -45,26 +44,14 @@ impl Library {
             .collect()
     }
 
-    fn hamming_match(&self, token: &str, distance: usize) -> Option<&String> {
-        if distance > 0 {
-            self.keys()
-                .find(|x| hamming_distance(x, token) <= 1)
-        } else {
-            None
-        }
-    }
-
-    pub fn contains(&self, token: &str, distance: usize) -> Option<&String> {
+    pub fn contains(&self, token: &str) -> Option<&String> {
         match self.table.contains_key(token) {
             true => self.alias(token),
-            false => match self.hamming_match(token, distance) {
-                Some(s) => self.alias(s),
-                _ => None
-            }
+            false => None
         }
     }
 
-    fn alias(&self, token: &str) -> Option<&String> {
+    pub fn alias(&self, token: &str) -> Option<&String> {
         self.table.get(token)
     }
 
@@ -100,17 +87,9 @@ mod test {
     }
 
     #[test]
-    fn validate_hamming_0() {
+    fn validate_contains() {
         let library = Library::from_reader(reader()).unwrap();
-        assert_eq!(library.contains("ACTG", 0), Some(&String::from("seq.0")));
-        assert_eq!(library.contains("ACTT", 0), None);
-    }
-
-    #[test]
-    fn validate_hamming_1() {
-        let library = Library::from_reader(reader()).unwrap();
-        assert_eq!(library.contains("ACTG", 1), Some(&String::from("seq.0")));
-        assert_eq!(library.contains("ACTT", 1), Some(&String::from("seq.0")));
-        assert_eq!(library.contains("AGTT", 1), None);
+        assert_eq!(library.contains("ACTG"), Some(&String::from("seq.0")));
+        assert_eq!(library.contains("ACTT"), None);
     }
 }
