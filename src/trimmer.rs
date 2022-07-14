@@ -57,9 +57,53 @@ impl Iterator for Trimmer {
     fn next(&mut self) -> Option<Self::Item> {
         match self.next_record() {
             Ok(r) => r,
-            Err(_) => panic!("Unexpected EOF")
+            Err(why) => panic!("{}", why)
         }
     }
 
 }
 
+#[cfg(test)]
+mod test {
+
+    use fxread::{FastaReader, FastxRead, Record};
+    use super::Trimmer;
+
+    fn reader() -> Box<dyn FastxRead<Item = Record>> {
+        let sequence: &'static [u8] = b">seq.0\nACTG\n";
+        Box::new(FastaReader::new(sequence))
+    }
+
+    #[test]
+    fn build() {
+        let trimmer = Trimmer::from_reader(reader(), 0, 2);
+        assert_eq!(trimmer.into_iter().count(), 1);
+    }
+
+    #[test]
+    fn trim_no_offset() {
+        let mut trimmer = Trimmer::from_reader(reader(), 0, 2);
+        let record = trimmer.next().unwrap();
+        assert_eq!(record.seq(), "AC");
+    }
+
+    #[test]
+    fn trim_with_offset() {
+        let mut trimmer = Trimmer::from_reader(reader(), 1, 2);
+        let record = trimmer.next().unwrap();
+        assert_eq!(record.seq(), "CT");
+    }
+
+    #[test]
+    #[should_panic]
+    fn trim_with_oversize_offset() {
+        let mut trimmer = Trimmer::from_reader(reader(), 4, 2);
+        trimmer.next().unwrap();
+    }
+    #[test]
+    #[should_panic]
+    fn trim_with_oversize_size() {
+        let mut trimmer = Trimmer::from_reader(reader(), 0, 5);
+        trimmer.next().unwrap();
+    }
+}
