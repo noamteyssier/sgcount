@@ -5,11 +5,13 @@ mod library;
 mod trimmer;
 mod counter;
 mod results;
+mod hamming;
 
 use fxread::initialize_reader;
 use library::Library;
 use trimmer::Trimmer;
 use counter::Counter;
+use hamming::hamming_distance;
 use results::write_results;
 
 
@@ -47,6 +49,14 @@ fn get_args() -> ArgMatches {
             .takes_value(true)
             .required(false)
             .default_value("0"))
+        .arg(Arg::with_name("hamming")
+            .help("hamming distance to accept (default = 0)")
+            .short('d')
+            .long("distance")
+            .value_name("DISTANCE")
+            .takes_value(true)
+            .required(false)
+            .default_value("0"))
         .get_matches()
 }
 
@@ -56,6 +66,7 @@ fn main() -> Result<()> {
     let input_paths: Vec<_> = matches.values_of("inputs").unwrap().collect();
     let output_path = matches.value_of("output").unwrap_or("");
     let offset = matches.value_of("offset").unwrap().parse::<usize>().unwrap();
+    let hamming = matches.value_of("hamming").unwrap().parse::<usize>().unwrap();
 
     let library = Library::from_reader(
         initialize_reader(lib_path)?
@@ -66,7 +77,7 @@ fn main() -> Result<()> {
         .into_iter()
         .map(|x| initialize_reader(x).unwrap())
         .map(|x| Trimmer::from_reader(x, offset, size))
-        .map(|x| Counter::new(x, &library))
+        .map(|x| Counter::new(x, &library, hamming))
         .collect();
 
     write_results(output_path, &results, &library)?;

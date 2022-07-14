@@ -35,6 +35,7 @@ with open("example/library.fa", "w+") as f:
 with open("example/sequence.fq", "w+") as f:
     for h, s, q, l in generate_sequences(list(library_dict.keys())):
         library_dict[l] += 1
+        s = ''.join([x if idx != 2 else "N" for idx, x in enumerate(s)])
         f.write(f"@{h}\n{s}\n+\n{q}\n")
 
 with open("example/counts.txt", "w+") as f:

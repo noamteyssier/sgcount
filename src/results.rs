@@ -27,12 +27,12 @@ pub fn write_results(
 {
 
     let iterable = library
-        .keys()
-        .map(|key| {
+        .values()
+        .map(|alias| {
             results
                 .iter()
-                .fold(String::from(library.alias(key).unwrap()), |mut accum, x| {
-                    accum += &format!("\t{}", x.get_value(key));
+                .fold(String::from(alias), |mut accum, x| {
+                    accum += &format!("\t{}", x.get_value(alias));
                     accum
                 })
         });
