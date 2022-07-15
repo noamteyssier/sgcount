@@ -11,11 +11,20 @@
 use clap::Parser;
 use anyhow::Result;
 
-mod library;
-mod trimmer;
-mod counter;
-mod results;
-mod permutes;
+/// Module for Sequence Library
+pub mod library;
+
+/// Module for Sequence Trimming
+pub mod trimmer;
+
+/// Module for Matching Sequences Against a Library
+pub mod counter;
+
+/// Module for Handling Results
+pub mod results;
+
+/// Module for Unambiguous One-Off Sequence Generation 
+pub mod permutes;
 
 use fxread::initialize_reader;
 use library::Library;
@@ -45,9 +54,9 @@ struct Args {
     #[clap(short='n', long, value_parser, default_value="0")]
     offset: usize,
 
-    /// Allow One Off Matching
-    #[clap(short='d', long)]
-    oneoff: bool
+    /// Allow One Off Mismatch
+    #[clap(short='m', long)]
+    mismatch: bool
 }
 
 fn main() -> Result<()> {
@@ -58,7 +67,7 @@ fn main() -> Result<()> {
         )?;
     let size = library.size();
 
-    let permuter = match args.oneoff {
+    let permuter = match args.mismatch{
         true => Some(Permuter::new(library.keys())),
         false => None
     };
