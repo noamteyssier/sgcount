@@ -1,3 +1,13 @@
+//! sgcount
+//!
+//! # Summary
+//! This is a commandline tool to count the frequency of sgRNAs
+//! in a group of provided sequencing files. It is meant to replace
+//! methods of exact sequence matching without sacrificing speed and
+//! replace costly alignment scripts using bwa or bowtie to align to
+//! a library.
+
+#![warn(missing_docs)]
 use clap::Parser;
 use anyhow::Result;
 
