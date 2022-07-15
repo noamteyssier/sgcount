@@ -21,6 +21,15 @@ impl Counter {
         Self { results }
     }
 
+    /// Publically exposes the results dictionary and returns either the observed count
+    /// of a specific match or a zero if there were no matches.
+    pub fn get_value(&self, token: &str) -> &usize {
+        match self.results.get(token) {
+            Some(c) => c,
+            None => &0
+        }
+    }
+
     /// Assignment process against the [`Library`].
     fn check_library<'a>(token: &str, library: &'a Library) -> Option<&'a String> {
         library.contains(token)
@@ -70,15 +79,6 @@ impl Counter {
                 *accum.entry(x.to_string()).or_insert(0) += 1;
                 accum
             })
-    }
-
-    /// Publically exposes the results dictionary and returns either the observed count
-    /// of a specific match or a zero if there were no matches.
-    pub fn get_value(&self, token: &str) -> &usize {
-        match self.results.get(token) {
-            Some(c) => c,
-            None => &0
-        }
     }
 }
 
