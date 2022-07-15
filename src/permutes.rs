@@ -2,23 +2,62 @@ use std::collections::{HashSet, HashMap};
 
 const LEXICON: [char; 5] = ['A', 'C', 'G', 'T', 'N'];
 
-/// Calculates all unambiguous 'one-off' permutations 
-/// for a set of sequences
+/// Calculates all unambiguous single edit distance permutations 
+/// for a set of sequences (hamming distance = 1)
+///
+/// # Example of unambiguous one-off sequences
+/// This will create all unambiguous one-off sequences
+/// for a list of sequences.
+///
+/// Imagine the case of the following two sequences.
+///
+///```text
+///  AC   CG
+///-----------
+/// ~CC   CA
+///  GC  ~CC
+///  TC   CT
+///  NC   CN
+///  AA  ~AG
+/// ~AG   GG
+///  AT   TG
+///  AN   NG
+///```
+///  All `~` demarcated are ambiguous between the two and should
+///  be present in the null, alongside the origin sequence `AC` 
+///  and `CG`. All other sequences will be present within the map
+///  and be associated with their parent sequence (either `AC` or
+///  `CG`).
+///
 pub struct Permuter {
     map: HashMap<String, String>,
     _null: HashSet<String>
 }
 
 impl Permuter {
+
+    /// Initiates the algorithm to determine all unambiguous one-off sequences
+    /// from an iterator of sequences. This input can be anything which implements
+    /// the [`Iterator`] trait on [`String`] references. 
+    ///
+    /// The internal `map` relates child permuted sequences with their parent sequences. 
+    /// The internal `_null` is a `HashSet` of all parent sequences as well as all ambiguous
+    /// one-offs.
     pub fn new<'a>(sequences: impl Iterator<Item = &'a String>) -> Self {
         let (map, null) = Self::build(sequences);
         Self { map, _null: null }
     }
 
+    /// Publically exposes the internal [`HashMap`] to recover the parent sequence
+    /// of a potential permuted sequence.
     pub fn contains(&self, token: &str) -> Option<&String> {
         self.map.get(token)
     }
 
+    /// Main builder for the `map` and `_null` attributes.
+    /// All sequences are permuted to their full set of permutations w.r.t the nucleotide lexicon.
+    /// These are then folded into the `map` and `_null` data types depending on the predicate
+    /// described in [`Self::insert_sequence`]
     fn build<'a>(
             sequences: impl Iterator<Item = &'a String>) -> (HashMap<String, String>, HashSet<String>) 
     {
@@ -34,6 +73,7 @@ impl Permuter {
                     })
     }
 
+    /// Generates all possible sequence permutations for a provided sequence and lexicon.
     fn permute_sequence(
             sequence: &str, 
             lexicon: &[char; 5]) -> Vec<String> 
@@ -46,6 +86,8 @@ impl Permuter {
             .collect()
     }
 
+    /// Splits a sequence into thirds at a specific index and returns the prefix,
+    /// suffix, and basepair at that index.
     fn sequence_regions(
             sequence: &str, 
             idx: usize) -> (&str, &str, &str) 
@@ -55,6 +97,7 @@ impl Permuter {
         (prefix, poschar, suffix)
     }
 
+    /// Generates all permutations at a specific index within the sequence.
     fn build_permutations(
             prefix: &str, 
             suffix: &str, 
@@ -68,10 +111,13 @@ impl Permuter {
             .collect()      
     }
 
+    /// Utility function to convert a [`&str`] -> [`char`]
     fn aschar(poschar: &str) -> char {
         poschar.chars().next().unwrap()
     }
 
+    /// Creates a specific permutation by stitching together a prefix,
+    /// basepair, and suffix
     fn build_permutation(
             prefix: &str, 
             suffix: &str, 
@@ -84,6 +130,14 @@ impl Permuter {
         sequence
     }
 
+    /// Handles the disambiguation logic. 
+    /// First adds the parent sequence to the `null` set if not already in there.
+    /// Then check to see if the child permutation is in the `null` set and skip it
+    /// if it is. 
+    /// Otherwise check if the permutation already has been found in the `map` set
+    /// and if it is then add the sequence the `null` (i.e. it is an ambiguous permutation).
+    /// If it is not found in the `map` set then add it to the map set and link it to its
+    /// parent sequence.
     fn insert_sequence(
             sequence: &str, 
             permutation: &String, 
@@ -102,6 +156,9 @@ impl Permuter {
         }
     }
 
+    /// Case when a newly generated permutation has already been found in the `map` set.
+    /// This will remove that sequence from the `map` set and insert it into the `null`
+    /// set so it cannot be used again.
     fn insert_to_null(
             permutation: &String, 
             null: &mut HashSet<String>, 
@@ -111,6 +168,8 @@ impl Permuter {
         null.insert(permutation.to_owned());
     }
 
+    /// Case when a newly generated permutation has not been seen before. This then
+    /// adds it to the `map` set and links it to its parent sequence.
     fn insert_to_table(
             permutation: &String, 
             sequence: &str, 

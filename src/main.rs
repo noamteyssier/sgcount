@@ -1,18 +1,37 @@
+//! sgcount
+//!
+//! # Summary
+//! This is a commandline tool to count the frequency of sgRNAs
+//! in a group of provided sequencing files. It is meant to replace
+//! methods of exact sequence matching without sacrificing speed and
+//! replace costly alignment scripts using bwa or bowtie to align to
+//! a library.
+
+#![warn(missing_docs)]
 use clap::Parser;
 use anyhow::Result;
 
-mod library;
-mod trimmer;
-mod counter;
-mod results;
-mod permutes;
+/// Module for Sequence Library
+pub mod library;
 
-use fxread::initialize_reader;
-use library::Library;
-use trimmer::Trimmer;
-use counter::Counter;
-use permutes::Permuter;
-use results::write_results;
+/// Module for Sequence Trimming
+pub mod trimmer;
+
+/// Module for Matching Sequences Against a Library
+pub mod counter;
+
+/// Module for Handling Results
+pub mod results;
+
+/// Module for Unambiguous One-Off Sequence Generation 
+pub mod permutes;
+
+pub use fxread::initialize_reader;
+pub use library::Library;
+pub use trimmer::Trimmer;
+pub use counter::Counter;
+pub use permutes::Permuter;
+pub use results::write_results;
 
 
 #[derive(Parser, Debug)]
@@ -35,9 +54,9 @@ struct Args {
     #[clap(short='n', long, value_parser, default_value="0")]
     offset: usize,
 
-    /// Allow One Off Matching
-    #[clap(short='d', long)]
-    oneoff: bool
+    /// Allow One Off Mismatch
+    #[clap(short='m', long)]
+    mismatch: bool
 }
 
 fn main() -> Result<()> {
@@ -48,7 +67,7 @@ fn main() -> Result<()> {
         )?;
     let size = library.size();
 
-    let permuter = match args.oneoff {
+    let permuter = match args.mismatch{
         true => Some(Permuter::new(library.keys())),
         false => None
     };

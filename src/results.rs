@@ -2,6 +2,8 @@ use anyhow::Result;
 use super::{Counter, Library};
 use std::{fs::File, io::Write};
 
+
+/// Writes the results dataframe to the provided path
 fn write_to_path(path: &str, iterable: impl Iterator<Item = String>) -> Result<()>
 {
     iterable
@@ -13,6 +15,7 @@ fn write_to_path(path: &str, iterable: impl Iterator<Item = String>) -> Result<(
     Ok(())
 }
 
+/// Writes the results dataframe to stdout
 fn write_to_stdout(iterable: impl Iterator<Item = String>) -> Result<()> 
 {
     iterable
@@ -20,6 +23,8 @@ fn write_to_stdout(iterable: impl Iterator<Item = String>) -> Result<()>
     Ok(())
 }
 
+/// Writes the results dataframe either to the provided path
+/// or to stdout
 pub fn write_results(
         path: Option<String>, 
         results: &Vec<Counter>,
