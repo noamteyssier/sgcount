@@ -1,12 +1,17 @@
 use fxread::{Record, FastxRead};
 use anyhow::Result;
 
+/// A conversion iterator which applies sequence trimming and offsetting
+/// The size describes the number of basepairs to consider within the sequence
+/// and the offset defines which index to start reading the sequence from.
 pub struct Trimmer {
     reader: Box<dyn FastxRead<Item = Record>>,
     offset: usize,
     size: usize
 }
 impl Trimmer {
+
+    /// Converts a [`FastxRead`] reader into a trimmed reader
     pub fn from_reader(
             reader: Box<dyn FastxRead<Item = Record>>,
             offset: usize,
@@ -18,6 +23,7 @@ impl Trimmer {
         }
     }
 
+    /// Applies the offset and trimming
     fn trim_sequence(&self, token: &str) -> Result<String> {
         match token.len() >= self.offset + self.size {
             true => {
@@ -33,6 +39,8 @@ impl Trimmer {
         }
     }
 
+    /// Trims the record, acts as the interface with the [`FastxRead`]
+    /// `next_record` method
     fn trim_record(&self, record: Record) -> Result<Record> {
         let mut trim = Record::new();
         trim.set_id(record.id().to_owned());
