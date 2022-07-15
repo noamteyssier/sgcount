@@ -26,12 +26,12 @@ pub mod results;
 /// Module for Unambiguous One-Off Sequence Generation 
 pub mod permutes;
 
-use fxread::initialize_reader;
-use library::Library;
-use trimmer::Trimmer;
-use counter::Counter;
-use permutes::Permuter;
-use results::write_results;
+pub use fxread::initialize_reader;
+pub use library::Library;
+pub use trimmer::Trimmer;
+pub use counter::Counter;
+pub use permutes::Permuter;
+pub use results::write_results;
 
 
 #[derive(Parser, Debug)]
