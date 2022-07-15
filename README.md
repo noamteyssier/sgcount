@@ -52,10 +52,10 @@ sgcount -l <path_to_library> -i <path_to_sequencing> -n 10
 
 ### Allowing Mismatches
 By default sgcount will only allow for exact matches, but if you would
-like to allow a single mismatch you can specify it with the `-d` flag.
+like to allow a single mismatch you can specify it with the `-m` flag.
 
 ```bash
-sgcount -l <path_to_library> -i <path_to_sequencing> -d
+sgcount -l <path_to_library> -i <path_to_sequencing> -m
 ```
 
 ### Setting the Output File
