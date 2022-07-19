@@ -67,7 +67,6 @@ struct Args {
     subsample: Option<usize>
 }
 
-#[allow(dead_code)]
 fn count(
     library_path: String,
     input_paths: Vec<String>,
