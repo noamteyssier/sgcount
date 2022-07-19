@@ -1,10 +1,10 @@
-use fxread::{FastxRead, Record, initialize_reader};
+use fxread::{Record, initialize_reader};
 use ndarray::{Axis, Array2, Array1};
 use anyhow::Result;
 use ndarray_stats::{EntropyExt, DeviationExt, QuantileExt};
 
 /// Calculates the size of the first sequence in a `FastxRead` Iterator.
-fn get_sequence_size(reader: &mut Box<dyn FastxRead<Item = Record>>) -> usize {
+fn get_sequence_size(reader: &mut dyn Iterator<Item = Record>) -> usize {
     reader
         .peekable()
         .next()
@@ -26,7 +26,7 @@ fn base_map(c: char) -> Option<usize> {
 /// Creates a 2D matrix of shape (seq_size, 4) where each row represents the positional
 /// index of the sequence and each column represents the number of observed nucleotides 
 /// at that position
-fn position_counts(reader: &mut Box<dyn FastxRead<Item = Record>>) -> Array2<f64>{
+fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64>{
     let size = get_sequence_size(reader);
     reader
         .fold(
@@ -60,7 +60,7 @@ fn normalize_counts(matrix: Array2<f64>) -> Array2<f64> {
 }
 
 /// Calculates the nucleotie entropy for each basepair position in an [`FastxRead`] iterator.
-fn positional_entropy(reader: &mut Box<dyn FastxRead<Item = Record>>) -> Array1<f64> {
+fn positional_entropy(reader: &mut dyn Iterator<Item = Record>) -> Array1<f64> {
     let pos_prob = normalize_counts(position_counts(reader));
     pos_prob
         .map_axis(
@@ -86,10 +86,11 @@ fn minimize_mse(reference: Array1<f64>, comparison: Array1<f64>) -> usize {
 /// the MSE of Positional Entropy Observed in the Reference.
 pub fn entropy_offset(
         library_path: &String,
-        input_paths: &Vec<String>) -> Result<usize> {
+        input_paths: &Vec<String>,
+        subsample: usize) -> Result<usize> {
 
     let mut reference = initialize_reader(&library_path)?;
-    let mut comparison = initialize_reader(&input_paths[0])?;
+    let mut comparison = initialize_reader(&input_paths[0])?.take(subsample);
 
     let reference_entropy = positional_entropy(&mut reference);
     let comparison_entropy = positional_entropy(&mut comparison);
