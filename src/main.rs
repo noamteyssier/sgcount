@@ -26,12 +26,16 @@ pub mod results;
 /// Module for Unambiguous One-Off Sequence Generation 
 pub mod permutes;
 
+/// Module for Determining Entropy Offset of Reads
+pub mod offsetter;
+
 pub use fxread::initialize_reader;
 pub use library::Library;
 pub use trimmer::Trimmer;
 pub use counter::Counter;
 pub use permutes::Permuter;
 pub use results::write_results;
+pub use offsetter::entropy_offset;
 
 
 #[derive(Parser, Debug)]
@@ -51,14 +55,19 @@ struct Args {
     output_path: Option<String>,
 
     /// Adapter Offset
-    #[clap(short='n', long, value_parser, default_value="0")]
-    offset: usize,
+    #[clap(short='n', long, value_parser)]
+    offset: Option<usize>,
 
     /// Allow One Off Mismatch
     #[clap(short='m', long)]
-    mismatch: bool
+    mismatch: bool,
+
+    /// Number of Reads to Subsample in Determining Offset [default: 5000]
+    #[clap(short='s', long)]
+    subsample: Option<usize>
 }
 
+#[allow(dead_code)]
 fn count(
     library_path: String,
     input_paths: Vec<String>,
@@ -88,13 +97,24 @@ fn count(
     Ok(())
 }
 
+
 fn main() -> Result<()> {
     let args = Args::parse();
+
+    let subsample = match args.subsample{
+        Some(n) => n,
+        None => 5000
+    };
+
+    let offset = match args.offset {
+        Some(o) => o,
+        None => entropy_offset(&args.library_path, &args.input_paths, subsample)?
+    };
     count(
         args.library_path,
         args.input_paths,
         args.output_path,
-        args.offset,
+        offset,
         args.mismatch)?;
     Ok(())
 }
