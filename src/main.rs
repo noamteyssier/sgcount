@@ -74,6 +74,7 @@ struct Args {
     /// Does not show progress
     #[clap(short='q', long)]
     quiet: bool
+<<<<<<< HEAD
 }
 
 /// Generates Mismatch Library if Necessary
@@ -91,6 +92,8 @@ fn generate_permutations(
         None => {}
     };
     permuter
+=======
+>>>>>>> main
 }
 
 fn count(
@@ -117,7 +120,11 @@ fn count(
     let results: Vec<Counter> = input_paths
         .into_iter()
         .map(|x| initialize_reader(&x).unwrap())
+<<<<<<< HEAD
         .map(|x| Trimmer::from_reader(x, offset, library.size()))
+=======
+        .map(|x| Trimmer::from_reader(x, offset, size))
+>>>>>>> main
         .zip(sample_names.iter())
         .map(|(x, name)| {
             let spinner = match quiet {
