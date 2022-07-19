@@ -59,26 +59,42 @@ struct Args {
     mismatch: bool
 }
 
-fn main() -> Result<()> {
-    let args = Args::parse();
-    
+fn count(
+    library_path: String,
+    input_paths: Vec<String>,
+    output_path: Option<String>,
+    offset: usize,
+    mismatch: bool) -> Result<()> {
+
     let library = Library::from_reader(
-        initialize_reader(&args.library_path)?
+        initialize_reader(&library_path)?
         )?;
     let size = library.size();
 
-    let permuter = match args.mismatch{
+    let permuter = match mismatch{
         true => Some(Permuter::new(library.keys())),
         false => None
     };
 
-    let results: Vec<Counter> = args.input_paths
+    let results: Vec<Counter> = input_paths
         .into_iter()
         .map(|x| initialize_reader(&x).unwrap())
-        .map(|x| Trimmer::from_reader(x, args.offset, size))
+        .map(|x| Trimmer::from_reader(x, offset, size))
         .map(|x| Counter::new(x, &library, &permuter))
         .collect();
 
-    write_results(args.output_path, &results, &library)?;
+    write_results(output_path, &results, &library)?;
+
+    Ok(())
+}
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+    count(
+        args.library_path,
+        args.input_paths,
+        args.output_path,
+        args.offset,
+        args.mismatch)?;
     Ok(())
 }
