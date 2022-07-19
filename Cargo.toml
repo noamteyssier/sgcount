@@ -9,3 +9,5 @@ edition = "2021"
 fxread = "0.1"
 anyhow = "1"
 clap = { version = "3.2", features = ["derive"] }
+ndarray = "0.15"
+ndarray-stats = "0.5"

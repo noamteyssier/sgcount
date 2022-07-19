@@ -26,12 +26,16 @@ pub mod results;
 /// Module for Unambiguous One-Off Sequence Generation 
 pub mod permutes;
 
+/// Module for Determining Entropy Offset of Reads
+pub mod offsetter;
+
 pub use fxread::initialize_reader;
 pub use library::Library;
 pub use trimmer::Trimmer;
 pub use counter::Counter;
 pub use permutes::Permuter;
 pub use results::write_results;
+pub use offsetter::entropy_offset;
 
 
 #[derive(Parser, Debug)]
@@ -51,34 +55,65 @@ struct Args {
     output_path: Option<String>,
 
     /// Adapter Offset
-    #[clap(short='n', long, value_parser, default_value="0")]
-    offset: usize,
+    #[clap(short='n', long, value_parser)]
+    offset: Option<usize>,
 
     /// Allow One Off Mismatch
     #[clap(short='m', long)]
-    mismatch: bool
+    mismatch: bool,
+
+    /// Number of Reads to Subsample in Determining Offset [default: 5000]
+    #[clap(short='s', long)]
+    subsample: Option<usize>
 }
 
-fn main() -> Result<()> {
-    let args = Args::parse();
-    
+fn count(
+    library_path: String,
+    input_paths: Vec<String>,
+    output_path: Option<String>,
+    offset: usize,
+    mismatch: bool) -> Result<()> {
+
     let library = Library::from_reader(
-        initialize_reader(&args.library_path)?
+        initialize_reader(&library_path)?
         )?;
     let size = library.size();
 
-    let permuter = match args.mismatch{
+    let permuter = match mismatch{
         true => Some(Permuter::new(library.keys())),
         false => None
     };
 
-    let results: Vec<Counter> = args.input_paths
+    let results: Vec<Counter> = input_paths
         .into_iter()
         .map(|x| initialize_reader(&x).unwrap())
-        .map(|x| Trimmer::from_reader(x, args.offset, size))
+        .map(|x| Trimmer::from_reader(x, offset, size))
         .map(|x| Counter::new(x, &library, &permuter))
         .collect();
 
-    write_results(args.output_path, &results, &library)?;
+    write_results(output_path, &results, &library)?;
+
+    Ok(())
+}
+
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+
+    let subsample = match args.subsample{
+        Some(n) => n,
+        None => 5000
+    };
+
+    let offset = match args.offset {
+        Some(o) => o,
+        None => entropy_offset(&args.library_path, &args.input_paths, subsample)?
+    };
+    count(
+        args.library_path,
+        args.input_paths,
+        args.output_path,
+        offset,
+        args.mismatch)?;
     Ok(())
 }
