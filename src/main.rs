@@ -76,6 +76,23 @@ struct Args {
     quiet: bool
 }
 
+/// Generates Mismatch Library if Necessary
+fn generate_permutations(
+        library: &Library,
+        quiet: bool) -> Permuter {
+
+    let spinner = match quiet {
+        true => None,
+        false => Some(Spinner::with_timer(Spinners::Dots, format!("Generating Mismatch Library")))
+    };
+    let permuter = Permuter::new(library.keys());
+    match spinner {
+        Some(mut s) => s.stop_and_persist("🗸", format!("Finished Mismatch Library")),
+        None => {}
+    };
+    permuter
+}
+
 fn count(
     library_path: String,
     input_paths: Vec<String>,
@@ -85,20 +102,22 @@ fn count(
     mismatch: bool,
     quiet: bool) -> Result<()> {
 
+    // generate library
     let library = Library::from_reader(
         initialize_reader(&library_path)?
         )?;
-    let size = library.size();
 
+    // generate permuter if necessary
     let permuter = match mismatch{
-        true => Some(Permuter::new(library.keys())),
+        true => Some(generate_permutations(&library, quiet)),
         false => None
     };
 
+    // main counting function
     let results: Vec<Counter> = input_paths
         .into_iter()
         .map(|x| initialize_reader(&x).unwrap())
-        .map(|x| Trimmer::from_reader(x, offset, size))
+        .map(|x| Trimmer::from_reader(x, offset, library.size()))
         .zip(sample_names.iter())
         .map(|(x, name)| {
             let spinner = match quiet {
