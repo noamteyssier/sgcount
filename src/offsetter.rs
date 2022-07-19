@@ -3,7 +3,7 @@ use ndarray::{Axis, Array2, Array1};
 use anyhow::Result;
 use ndarray_stats::{EntropyExt, DeviationExt, QuantileExt};
 
-/// Calculates the size of the first sequence in a `FastxRead` Iterator.
+/// Calculates the size of the first sequence in a [`fxread::FastxRead`] Iterator.
 fn get_sequence_size(reader: &mut dyn Iterator<Item = Record>) -> usize {
     reader
         .next()
@@ -67,7 +67,7 @@ fn normalize_counts(matrix: Array2<f64>) -> Array2<f64> {
     norm
 }
 
-/// Calculates the nucleotie entropy for each basepair position in an [`FastxRead`] iterator.
+/// Calculates the nucleotide entropy for each basepair position in an [`fxread::FastxRead`] iterator.
 fn positional_entropy(reader: &mut dyn Iterator<Item = Record>) -> Array1<f64> {
     let pos_prob = normalize_counts(position_counts(reader));
     pos_prob
