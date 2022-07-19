@@ -78,6 +78,15 @@ specify the output path directly you can do so with the `-o` flag.
 sgcount -l <path_to_library> -i <path_to_sequencing> -o <path_to_output>
 ```
 
+### Shutting off verbosity
+By default the program will show how much time is being elapsed as well as
+update the user on its progress. You can shut off this behavior with the
+`-q` flag.
+
+```bash
+sgcount -l <path_to_library> -i <path_to_sequencing> -q
+```
+
 
 ## Example Fasta Library
 An example library is provided in `example/library.fa`
