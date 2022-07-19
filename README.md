@@ -39,10 +39,12 @@ sgcount -l <path_to_library> -i <path_to_sequencing_a> <path_to_sequencing_b>
 ```
 
 ### Setting the Offset
-The default adapter offset is 0, which means that if the variable
-region on your sequence is not the starting position the counting
-will likely result in all zeros. If you know your adapter offset
-you can provide it with the `-n` flag.
+The program will automatically determine the offset if this flag is
+not provided.
+However, if you know the offset a priori you can supply it with the
+`-n` flag.
+If you recover all zeros in your counts it is recommended to not 
+supply this flag and let the program determine the offset algorithmically.
 
 For example, if you have a 10bp adapter sequence before the sgRNA
 then you can run the following:
