@@ -10,6 +10,7 @@
 #![warn(missing_docs)]
 use clap::Parser;
 use anyhow::Result;
+use spinners::{Spinners, Spinner};
 
 /// Module for Sequence Library
 pub mod library;
@@ -50,12 +51,16 @@ struct Args {
     #[clap(short, long, value_parser, min_values=1, required=true)]
     input_paths: Vec<String>,
 
+    /// Sample Names
+    #[clap(short='n', long, value_parser, min_values=1, required=false)]
+    sample_names: Option<Vec<String>>,
+
     /// Output filepath [default: stdout]
     #[clap(short, long, value_parser)]
     output_path: Option<String>,
 
     /// Adapter Offset
-    #[clap(short='n', long, value_parser)]
+    #[clap(short='a', long, value_parser)]
     offset: Option<usize>,
 
     /// Allow One Off Mismatch
@@ -64,15 +69,21 @@ struct Args {
 
     /// Number of Reads to Subsample in Determining Offset [default: 5000]
     #[clap(short='s', long)]
-    subsample: Option<usize>
+    subsample: Option<usize>,
+
+    /// Does not show progress
+    #[clap(short='q', long)]
+    quiet: bool
 }
 
 fn count(
     library_path: String,
     input_paths: Vec<String>,
+    sample_names: Vec<String>,
     output_path: Option<String>,
     offset: usize,
-    mismatch: bool) -> Result<()> {
+    mismatch: bool,
+    quiet: bool) -> Result<()> {
 
     let library = Library::from_reader(
         initialize_reader(&library_path)?
@@ -88,32 +99,84 @@ fn count(
         .into_iter()
         .map(|x| initialize_reader(&x).unwrap())
         .map(|x| Trimmer::from_reader(x, offset, size))
-        .map(|x| Counter::new(x, &library, &permuter))
+        .zip(sample_names.iter())
+        .map(|(x, name)| {
+            let spinner = match quiet {
+                true => None,
+                false => Some(Spinner::with_timer(Spinners::Dots, format!("Processing: {}", name)))
+            };
+            let counter = Counter::new(x, &library, &permuter);
+            match spinner {
+                Some(mut s) => s.stop_and_persist("🗸", format!("Finished: {}", name)),
+                None => {}
+            };
+            counter
+        })
         .collect();
 
-    write_results(output_path, &results, &library)?;
+    write_results(output_path, &results, &library, &sample_names)?;
 
     Ok(())
+}
+
+fn calculate_offset(
+        library_path: &String,
+        input_paths: &Vec<String>,
+        subsample: Option<usize>,
+        quiet: bool) -> Result<usize> { 
+
+    let subsample = match subsample{
+        Some(n) => n,
+        None => 5000
+    };
+    let spinner = match quiet {
+        true => None,
+        false => Some(Spinner::with_timer(Spinners::Dots, "Calculating Offset".to_string()))
+    };
+    let offset = entropy_offset(library_path, input_paths, subsample)?;
+    match spinner {
+        Some(mut s) => s.stop_and_persist("🗸", format!("Calculated Offset: {}bp", offset)),
+        None => {}
+    };
+    Ok(offset)
+}
+
+fn generate_sample_names(
+        input_paths: &Vec<String>) -> Vec<String> {
+    input_paths
+        .iter()
+        .enumerate()
+        .map(|(idx, _)| format!("Sample.{:?}", idx))
+        .collect()
 }
 
 
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    let subsample = match args.subsample{
-        Some(n) => n,
-        None => 5000
+    // generates sample names if required
+    let sample_names = match args.sample_names {
+        Some(s) => if s.len() != args.input_paths.len() { 
+                panic!("Must provide as many sample names as there are input files") 
+            } else { s },
+        None => generate_sample_names(&args.input_paths)
     };
 
+    // calculates offset if required
     let offset = match args.offset {
         Some(o) => o,
-        None => entropy_offset(&args.library_path, &args.input_paths, subsample)?
+        None => calculate_offset(&args.library_path, &args.input_paths, args.subsample, args.quiet)?
     };
+
+    // perform counting
     count(
         args.library_path,
         args.input_paths,
+        sample_names,
         args.output_path,
         offset,
-        args.mismatch)?;
+        args.mismatch,
+        args.quiet)?;
+
     Ok(())
 }

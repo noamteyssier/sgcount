@@ -4,23 +4,42 @@ use std::{fs::File, io::Write};
 
 
 /// Writes the results dataframe to the provided path
-fn write_to_path(path: &str, iterable: impl Iterator<Item = String>) -> Result<()>
+fn write_to_path(
+        path: &str, iterable: impl Iterator<Item = String>, 
+        columns: String) -> Result<()>
 {
+    let mut file = File::create(path)?;
+    writeln!(file, "{}", columns)?;
     iterable
-        .map(|x| x + "\n")
-        .fold(File::create(path)?, |mut accum, x| {
-            accum.write(&x.into_bytes()).expect("IO error in results");
-            accum
+        .for_each(|x| {
+            writeln!(file, "{}", x).expect("IO error in results");
         });
     Ok(())
 }
 
 /// Writes the results dataframe to stdout
-fn write_to_stdout(iterable: impl Iterator<Item = String>) -> Result<()> 
+fn write_to_stdout(
+        iterable: impl Iterator<Item = String>, 
+        columns: String) -> Result<()> 
 {
+    println!("{columns}");
     iterable
         .for_each(|x| println!("{x}"));
     Ok(())
+}
+
+/// Creates a Tab Delim String from a List of Names
+fn generate_columns(
+        names: &Vec<String>) -> String 
+{
+    names
+        .iter()
+        .fold(
+            String::from("Guide"),
+            |mut s, x| {
+            s += &format!("\t{}", x);
+            s
+        })
 }
 
 /// Writes the results dataframe either to the provided path
@@ -28,7 +47,8 @@ fn write_to_stdout(iterable: impl Iterator<Item = String>) -> Result<()>
 pub fn write_results(
         path: Option<String>, 
         results: &Vec<Counter>,
-        library: &Library) -> Result<()> 
+        library: &Library,
+        names: &Vec<String>) -> Result<()> 
 {
 
     let iterable = library
@@ -42,8 +62,10 @@ pub fn write_results(
                 })
         });
 
+    let columns = generate_columns(names);
+
     match path {
-        Some(p) => write_to_path(&p, iterable),
-        None => write_to_stdout(iterable)
+        Some(p) => write_to_path(&p, iterable, columns),
+        None => write_to_stdout(iterable, columns)
     }
 }
