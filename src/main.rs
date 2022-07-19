@@ -10,6 +10,7 @@
 #![warn(missing_docs)]
 use clap::Parser;
 use anyhow::Result;
+use spinners::{Spinners, Spinner};
 
 /// Module for Sequence Library
 pub mod library;
@@ -64,7 +65,11 @@ struct Args {
 
     /// Number of Reads to Subsample in Determining Offset [default: 5000]
     #[clap(short='s', long)]
-    subsample: Option<usize>
+    subsample: Option<usize>,
+
+    /// Does not show progress
+    #[clap(short='q', long)]
+    quiet: bool
 }
 
 fn count(
@@ -72,7 +77,8 @@ fn count(
     input_paths: Vec<String>,
     output_path: Option<String>,
     offset: usize,
-    mismatch: bool) -> Result<()> {
+    mismatch: bool,
+    quiet: bool) -> Result<()> {
 
     let library = Library::from_reader(
         initialize_reader(&library_path)?
@@ -88,7 +94,18 @@ fn count(
         .into_iter()
         .map(|x| initialize_reader(&x).unwrap())
         .map(|x| Trimmer::from_reader(x, offset, size))
-        .map(|x| Counter::new(x, &library, &permuter))
+        .map(|x| {
+            let spinner = match quiet {
+                true => None,
+                false => Some(Spinner::with_timer(Spinners::Dots, "Processing Sample".to_string()))
+            };
+            let counter = Counter::new(x, &library, &permuter);
+            match spinner {
+                Some(mut s) => s.stop_and_persist("🗸", "Counted Sample".to_string()),
+                None => {}
+            };
+            counter
+        })
         .collect();
 
     write_results(output_path, &results, &library)?;
@@ -96,24 +113,42 @@ fn count(
     Ok(())
 }
 
+fn calculate_offset(
+        library_path: &String,
+        input_paths: &Vec<String>,
+        subsample: Option<usize>,
+        quiet: bool) -> Result<usize> { 
+
+    let subsample = match subsample{
+        Some(n) => n,
+        None => 5000
+    };
+    let spinner = match quiet {
+        true => None,
+        false => Some(Spinner::with_timer(Spinners::Dots, "Calculating Offset".to_string()))
+    };
+    let offset = entropy_offset(library_path, input_paths, subsample)?;
+    match spinner {
+        Some(mut s) => s.stop_and_persist("🗸", format!("Calculated Offset: {}bp", offset)),
+        None => {}
+    };
+    Ok(offset)
+}
+
 
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    let subsample = match args.subsample{
-        Some(n) => n,
-        None => 5000
-    };
-
     let offset = match args.offset {
         Some(o) => o,
-        None => entropy_offset(&args.library_path, &args.input_paths, subsample)?
+        None => calculate_offset(&args.library_path, &args.input_paths, args.subsample, args.quiet)?
     };
     count(
         args.library_path,
         args.input_paths,
         args.output_path,
         offset,
-        args.mismatch)?;
+        args.mismatch,
+        args.quiet)?;
     Ok(())
 }
