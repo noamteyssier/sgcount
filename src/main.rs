@@ -83,7 +83,7 @@ fn generate_permutations(
 
     let spinner = match quiet {
         true => None,
-        false => Some(Spinner::with_timer(Spinners::Dots, format!("Generating Mismatch Library")))
+        false => Some(Spinner::with_timer(Spinners::Dots10, format!("Generating Mismatch Library")))
     };
     let permuter = Permuter::new(library.keys());
     match spinner {
@@ -122,7 +122,7 @@ fn count(
         .map(|(x, name)| {
             let spinner = match quiet {
                 true => None,
-                false => Some(Spinner::with_timer(Spinners::Dots, format!("Processing: {}", name)))
+                false => Some(Spinner::with_timer(Spinners::Dots3, format!("Processing: {}", name)))
             };
             let counter = Counter::new(x, &library, &permuter);
             match spinner {
