@@ -8,7 +8,7 @@ LIB_SIZE = 20
 
 TEST_NUM = 1000
 TEST_SIZE = 80
-TEST_OFFSET = 0
+TEST_OFFSET = 5
 
 def generate_library():
     for idx in np.arange(LIB_NUM):
@@ -17,14 +17,21 @@ def generate_library():
         yield header, seq
 
 def generate_sequences(library):
+    prefix = generate_prefix()
+    suffix = generate_suffix()
     for idx in np.arange(TEST_NUM):
         lib_choice = ''.join(np.random.choice(library, size=1))
         header = f"seq.{lib_choice}.{idx}"
-        prefix = ''.join([str(x) for x in np.random.choice(ALPHABET, size=TEST_OFFSET)])
-        suffix = ''.join([str(x) for x in np.random.choice(ALPHABET, size=TEST_SIZE - TEST_OFFSET - LIB_SIZE)])
         seq = prefix + lib_choice + suffix
         qual = ''.join([str(x) for x in np.random.choice(QUAL, size=TEST_SIZE)])
         yield header, seq, qual, lib_choice
+
+def generate_prefix():
+    return ''.join([str(x) for x in np.random.choice(ALPHABET, size=TEST_OFFSET)])
+
+def generate_suffix():
+    return ''.join([str(x) for x in np.random.choice(ALPHABET, size=TEST_SIZE - TEST_OFFSET - LIB_SIZE)])
+
 
 library_dict = {}
 with open("example/library.fa", "w+") as f:
