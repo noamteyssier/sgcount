@@ -13,6 +13,7 @@ fn get_sequence_size(reader: &mut dyn Iterator<Item = Record>) -> usize {
         .len()
 }
 
+/// Assigns a stable index to each nucleotide
 fn base_map(c: char) -> Option<usize> {
     match c {
         'A' => Some(0),
@@ -38,7 +39,12 @@ fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64>{
                     .map(|(idx, c)| (idx, base_map(c)))
                     .for_each(|(idx, jdx)| {
                         match jdx {
+                            
+                            // increment the nucleotide index and at the position
                             Some(j) => {posmat[(idx, j)] += 1.},
+
+                            // increment each nucleotide index if an `N` is found (as it could be
+                            // anything)
                             None => {
                                 posmat[(idx, 0)] += 1.;
                                 posmat[(idx, 1)] += 1.;
