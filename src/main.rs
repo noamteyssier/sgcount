@@ -30,13 +30,16 @@ pub mod permutes;
 /// Module for Determining Entropy Offset of Reads
 pub mod offsetter;
 
+/// Module for Performing Individual Sample Counting
+pub mod count;
+
 pub use fxread::initialize_reader;
 pub use library::Library;
 pub use trimmer::Trimmer;
 pub use counter::Counter;
 pub use permutes::Permuter;
-pub use results::write_results;
 pub use offsetter::entropy_offset;
+pub use count::count;
 
 
 #[derive(Parser, Debug)]
@@ -71,73 +74,34 @@ struct Args {
     #[clap(short='s', long)]
     subsample: Option<usize>,
 
+    /// Number of Threads to Use for Parallel Jobs
+    #[clap(short='t', long, default_value="1")]
+    threads: usize,
+
     /// Does not show progress
     #[clap(short='q', long)]
     quiet: bool
 }
 
-/// Generates Mismatch Library if Necessary
-fn generate_permutations(
-        library: &Library,
-        quiet: bool) -> Permuter {
-
-    let spinner = match quiet {
-        true => None,
-        false => Some(Spinner::with_timer(Spinners::Dots10, format!("Generating Mismatch Library")))
-    };
-    let permuter = Permuter::new(library.keys());
-    match spinner {
-        Some(mut s) => s.stop_and_persist("🗸", format!("Finished Mismatch Library")),
-        None => {}
-    };
-    permuter
+/// Sets the number of threads globally
+fn set_threads(threads: usize) {
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(threads)
+        .build_global()
+        .unwrap();
 }
 
-fn count(
-    library_path: String,
-    input_paths: Vec<String>,
-    sample_names: Vec<String>,
-    output_path: Option<String>,
-    offset: usize,
-    mismatch: bool,
-    quiet: bool) -> Result<()> {
-
-    // generate library
-    let library = Library::from_reader(
-        initialize_reader(&library_path)?
-        )?;
-
-    // generate permuter if necessary
-    let permuter = match mismatch{
-        true => Some(generate_permutations(&library, quiet)),
-        false => None
-    };
-
-    // main counting function
-    let results: Vec<Counter> = input_paths
-        .into_iter()
-        .map(|x| initialize_reader(&x).unwrap())
-        .map(|x| Trimmer::from_reader(x, offset, library.size()))
-        .zip(sample_names.iter())
-        .map(|(x, name)| {
-            let spinner = match quiet {
-                true => None,
-                false => Some(Spinner::with_timer(Spinners::Dots3, format!("Processing: {}", name)))
-            };
-            let counter = Counter::new(x, &library, &permuter);
-            match spinner {
-                Some(mut s) => s.stop_and_persist("🗸", format!("Finished: {}", name)),
-                None => {}
-            };
-            counter
-        })
-        .collect();
-
-    write_results(output_path, &results, &library, &sample_names)?;
-
-    Ok(())
+/// Generates default sample names
+fn generate_sample_names(
+        input_paths: &Vec<String>) -> Vec<String> {
+    input_paths
+        .iter()
+        .enumerate()
+        .map(|(idx, _)| format!("Sample.{:?}", idx))
+        .collect()
 }
 
+/// Calculates Offset if Required
 fn calculate_offset(
         library_path: &String,
         input_paths: &Vec<String>,
@@ -160,18 +124,11 @@ fn calculate_offset(
     Ok(offset)
 }
 
-fn generate_sample_names(
-        input_paths: &Vec<String>) -> Vec<String> {
-    input_paths
-        .iter()
-        .enumerate()
-        .map(|(idx, _)| format!("Sample.{:?}", idx))
-        .collect()
-}
-
 
 fn main() -> Result<()> {
     let args = Args::parse();
+
+    set_threads(args.threads);
 
     // generates sample names if required
     let sample_names = match args.sample_names {
