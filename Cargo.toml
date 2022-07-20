@@ -1,6 +1,6 @@
 [package]
 name = "sgcount"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -9,7 +9,7 @@ edition = "2021"
 fxread = "0.1"
 anyhow = "1"
 clap = { version = "3.2", features = ["derive"] }
+indicatif = {version = "*", features = ["rayon"]}
 rayon = "1.5"
 ndarray = "0.15"
 ndarray-stats = "0.5"
-spinners = "4.1"
