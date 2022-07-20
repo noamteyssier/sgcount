@@ -10,7 +10,6 @@
 #![warn(missing_docs)]
 use clap::Parser;
 use anyhow::Result;
-use spinners::{Spinners, Spinner};
 
 /// Module for Sequence Library
 pub mod library;
@@ -33,6 +32,9 @@ pub mod offsetter;
 /// Module for Performing Individual Sample Counting
 pub mod count;
 
+/// Module for utility functions regarding progress spinners
+pub mod progress;
+
 pub use fxread::initialize_reader;
 pub use library::Library;
 pub use trimmer::Trimmer;
@@ -40,6 +42,7 @@ pub use counter::Counter;
 pub use permutes::Permuter;
 pub use offsetter::entropy_offset;
 pub use count::count;
+use progress::*;
 
 
 #[derive(Parser, Debug)]
@@ -112,15 +115,13 @@ fn calculate_offset(
         Some(n) => n,
         None => 5000
     };
-    let spinner = match quiet {
+    let pb = match quiet {
         true => None,
-        false => Some(Spinner::with_timer(Spinners::Dots, "Calculating Offset".to_string()))
+        false => Some(initialize_progress_bar())
     };
+    start_progress_bar(&pb, "Calculating Offset".to_string());
     let offset = entropy_offset(library_path, input_paths, subsample)?;
-    match spinner {
-        Some(mut s) => s.stop_and_persist("🗸", format!("Calculated Offset: {}bp", offset)),
-        None => {}
-    };
+    finish_progress_bar(&pb, format!("Calculated Offset: {}bp", offset));
     Ok(offset)
 }
 
