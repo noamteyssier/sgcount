@@ -1,9 +1,11 @@
 use anyhow::Result;
 use fxread::initialize_reader;
-use spinners::{Spinner, Spinners};
 use rayon::prelude::*;
+use indicatif::ProgressBar;
+use std::thread;
 use crate::{Permuter, Counter, Library, Trimmer};
 use crate::results::write_results;
+use crate::progress::*;
 
 /// Counts the number of matching sgRNA-Reads for a provided
 /// filepath
@@ -13,19 +15,15 @@ fn count_sample(
         offset: usize,
         library: &Library,
         permuter: &Option<Permuter>,
-        quiet: bool) -> Result<Counter> {
+        pb: Option<&ProgressBar>) -> Result<Counter> {
 
     let reader = initialize_reader(path)?;
     let trimmer = Trimmer::from_reader(reader, offset, library.size());
-    let spinner = match quiet {
-        true => None,
-        false => Some(Spinner::with_timer(Spinners::Dots3, format!("Processing: {}", name)))
-    };
+
+    start_progress_bar_ref(&pb, format!("Processing: {}", name));
     let counter = Counter::new(trimmer, &library, &permuter);
-    match spinner {
-        Some(mut s) => s.stop_and_persist("🗸", format!("Finished: {}", name)),
-        None => {}
-    };
+    finish_progress_bar_ref(&pb, format!("Finished: {}", name));
+
     Ok(counter)
 }
 
@@ -34,15 +32,14 @@ fn generate_permutations(
         library: &Library,
         quiet: bool) -> Permuter {
 
-    let spinner = match quiet {
+    let pb = match quiet {
         true => None,
-        false => Some(Spinner::with_timer(Spinners::Dots10, format!("Generating Mismatch Library")))
+        false => Some(initialize_progress_bar())
     };
+
+    start_progress_bar(&pb, "Generating Mismatch Library".to_string());
     let permuter = Permuter::new(library.keys());
-    match spinner {
-        Some(mut s) => s.stop_and_persist("🗸", format!("Finished Mismatch Library")),
-        None => {}
-    };
+    finish_progress_bar(&pb, "Finished Mismatch Library".to_string());
     permuter
 }
 
@@ -69,19 +66,41 @@ pub fn count(
         false => None
     };
 
+    // generate multiprogress and individual progress bars
+    let (mp, progress_bars) = match quiet {
+        true => (None, None),
+        false => initialize_multi_progress(&sample_names)
+    };
+    
+    // start multiprogress if not quiet
+    let mp = match mp {
+        Some(m) => Some(thread::spawn(move || m.join())),
+        None => None
+    };
+
     // main counting function
     let results: Result<Vec<Counter>> = input_paths
         .into_par_iter()
         .zip(&sample_names)
-        .map(|(path, name)| 
+        .enumerate()
+        .map(|(idx, (path, name))| 
             count_sample(
                 &path, 
                 &name, 
                 offset, 
                 &library, 
                 &permuter, 
-                quiet))
+                match &progress_bars {
+                    Some(pbs) => Some(&pbs[idx]),
+                    None => None
+                }))
         .collect();
+
+    // join multiprogress if not quiet
+    match mp {
+        Some(m) => m.join().unwrap()?,
+        None => {}
+    };
 
     write_results(output_path, &results?, &library, &sample_names)?;
 
