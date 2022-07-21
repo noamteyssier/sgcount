@@ -8,6 +8,8 @@
 //! a library.
 
 #![warn(missing_docs)]
+use std::path::Path;
+
 use clap::Parser;
 use anyhow::Result;
 
@@ -125,11 +127,26 @@ fn calculate_offset(
     Ok(offset)
 }
 
+/// Validate Paths Exist
+fn validate_paths(input_paths: &Vec<String>) {
+    input_paths
+        .iter()
+        .for_each(|x| {
+            match Path::new(x).exists() {
+                true => {},
+                false => panic!("Provided filepath does not exist: {}", x)
+            }
+        })
+}
+
 
 fn main() -> Result<()> {
     let args = Args::parse();
 
     set_threads(args.threads);
+
+    // validates all input paths
+    validate_paths(&args.input_paths);
 
     // generates sample names if required
     let sample_names = match args.sample_names {
