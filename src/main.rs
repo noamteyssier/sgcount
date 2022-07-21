@@ -14,9 +14,6 @@ use anyhow::Result;
 /// Module for Sequence Library
 pub mod library;
 
-/// Module for Sequence Trimming
-pub mod trimmer;
-
 /// Module for Matching Sequences Against a Library
 pub mod counter;
 
@@ -37,7 +34,6 @@ pub mod progress;
 
 pub use fxread::initialize_reader;
 pub use library::Library;
-pub use trimmer::Trimmer;
 pub use counter::Counter;
 pub use permutes::Permuter;
 pub use offsetter::entropy_offset;
