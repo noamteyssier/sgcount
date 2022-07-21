@@ -1,6 +1,6 @@
 use anyhow;
 use anyhow::Result;
-use std::collections::HashMap;
+use hashbrown::HashMap;
 use fxread::{Record, FastxRead};
 
 type FxReader = Box<dyn FastxRead<Item = Record>>;

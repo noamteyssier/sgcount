@@ -1,4 +1,4 @@
-use std::collections::{HashSet, HashMap};
+use hashbrown::{HashSet, HashMap};
 
 const LEXICON: [char; 5] = ['A', 'C', 'G', 'T', 'N'];
 
