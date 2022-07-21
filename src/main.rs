@@ -121,7 +121,7 @@ fn calculate_offset(
     };
     start_progress_bar(&pb, "Calculating Offset".to_string());
     let offset = entropy_offset(library_path, input_paths, subsample)?;
-    finish_progress_bar(&pb, format!("Calculated Offset: {:?} bp", offset));
+    finish_progress_bar(&pb, format!("Calculated Offset: {:?}-bp", offset));
     Ok(offset)
 }
 
