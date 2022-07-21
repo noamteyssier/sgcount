@@ -1,7 +1,27 @@
 use fxread::{Record, initialize_reader};
-use ndarray::{Axis, Array2, Array1};
+use ndarray::{Axis, Array2, Array1, ArrayBase, ViewRepr, Dim};
 use anyhow::Result;
 use ndarray_stats::{EntropyExt, DeviationExt, QuantileExt};
+
+/// An enumeration describing whether the sequences
+/// are offset in a forward direction or if the offset
+/// is better described from the reverse complement
+#[derive(Debug, Copy, Clone)]
+pub enum Offset {
+    /// Reads will be processed with an offset in the forward direction
+    Forward(usize),
+    /// Reads will be processed with an offset on the reverse complement
+    Reverse(usize)
+}
+impl Offset {
+    /// Returns the internal index of the offset
+    pub fn index(&self) -> &usize {
+        match self {
+            Self::Forward(index) => index,
+            Self::Reverse(index) => index,
+        }
+    }
+}
 
 /// Calculates the size of the first sequence in a [`fxread::FastxRead`] Iterator.
 fn get_sequence_size(reader: &mut dyn Iterator<Item = Record>) -> usize {
@@ -76,19 +96,77 @@ fn positional_entropy(reader: &mut dyn Iterator<Item = Record>) -> Array1<f64> {
             |axis| axis.entropy().expect("Unexpected Negatives in Calculation"))
 }
 
-/// Calculates the starting position which minimizes the entropy between two entropy arrays
-fn minimize_mse(reference: Array1<f64>, comparison: Array1<f64>) -> usize {
-    let size = comparison.len() - reference.len() + 1;
-    assert!(size > 0);
-    let mse = (0..size)
-        .map(|idx| (idx, idx+reference.len()))
+/// Convenience function for returning a subset of an array
+fn slice_array(
+        array: &Array1<f64>, 
+        x: usize, 
+        y: usize) -> ArrayBase<ViewRepr<&f64>, Dim<[usize; 1]>> 
+{
+    array.slice(ndarray::s![x..y])
+}
+
+/// Calculate Windowed MSE of two arrays
+/// where the first array is smaller than
+/// the second
+fn windowed_mse(
+        array1: &Array1<f64>,
+        array2: &Array1<f64>) -> Array1<f64>
+{
+    let size = array2.len() - array1.len() + 1;
+    (0..size)
+        .map(|idx| (idx, idx+array1.len()))
         .fold(
             Array1::<f64>::zeros(size), 
             |mut arr, (x, y)| {
-                arr[x] += reference.mean_sq_err(&comparison.slice(ndarray::s![x..y])).expect("unexpected error");
+                arr[x] += array1.mean_sq_err(&slice_array(&array2, x, y)).expect("unexpected error");
                 arr
-            });
-    mse.argmin().expect("MinMax Error")
+            })
+}
+
+fn assign_offset(
+        mse_forward: Array1<f64>, 
+        mse_reverse: Array1<f64>) -> Offset
+{
+    let argmin_forward = match mse_forward.argmin() {
+        Ok(m) => m,
+        Err(why) => panic!("Unexpected minmax error in entropy: {}", why)
+    };
+
+    let argmin_reverse = match mse_reverse.argmin() {
+        Ok(m) => m,
+        Err(why) => panic!("Unexpected minmax error in entropy: {}", why)
+    };
+
+    let min_forward = match mse_forward.min() {
+        Ok(m) => m,
+        Err(why) => panic!("Unexpected minmax error in entropy: {}", why)
+    };
+
+    let min_reverse = match mse_reverse.min() {
+        Ok(m) => m,
+        Err(why) => panic!("Unexpected minmax error in entropy: {}", why)
+    };
+
+    match min_forward < min_reverse {
+        
+        // Reads are in forward directionality
+        true => Offset::Forward(argmin_forward),
+
+        // Reads are in reverse directionality
+        false => Offset::Reverse(argmin_reverse)
+    }
+}
+
+/// Calculates the starting position which minimizes the entropy between two entropy arrays
+fn minimize_mse(reference: Array1<f64>, comparison: Array1<f64>) -> Offset {
+    let size = comparison.len() - reference.len() + 1;
+    assert!(size > 0);
+    let rev_comparison = comparison.iter().rev().map(|x| x.clone()).collect();
+
+    let mse_forward = windowed_mse(&reference, &comparison);
+    let mse_reverse = windowed_mse(&reference, &rev_comparison);
+
+    assign_offset(mse_forward, mse_reverse)
 }
 
 /// Calculates the Offset in the Comparison by Minimizing
@@ -96,7 +174,7 @@ fn minimize_mse(reference: Array1<f64>, comparison: Array1<f64>) -> usize {
 pub fn entropy_offset(
         library_path: &String,
         input_paths: &Vec<String>,
-        subsample: usize) -> Result<usize> {
+        subsample: usize) -> Result<Offset> {
 
     let mut reference = initialize_reader(&library_path)?;
     let mut comparison = initialize_reader(&input_paths[0])?.take(subsample);
@@ -111,7 +189,7 @@ pub fn entropy_offset(
 #[cfg(test)]
 mod test {
     use ndarray::Array1;
-    use super::{minimize_mse, get_sequence_size, position_counts, normalize_counts, positional_entropy};
+    use super::{minimize_mse, get_sequence_size, position_counts, normalize_counts, positional_entropy, Offset};
     use fxread::{FastaReader, FastxRead, Record};
 
     // create reader with an `AC` static prefix
@@ -127,11 +205,21 @@ mod test {
         Box::new(FastaReader::new(sequence))
     }
 
+    // create reader with an `AACAA` static prefix on before the `AC` static prefix
+    // but reverse complemented
+    fn rc_offset_reader() -> Box<dyn FastxRead<Item = Record>> {
+        let sequence: &'static [u8] = b">seq.0\nAGTTTGTT\n>seq.1\nGGTTTGTT\n>seq.2\nAGTTTGTT\n";
+        Box::new(FastaReader::new(sequence))
+    }
+
     #[test]
     fn minimization() {
         let arr = Array1::linspace(0., 10., 11);
         let brr = Array1::linspace(10., 20., 100);
-        assert_eq!(minimize_mse(arr, brr), 0);
+        match minimize_mse(arr, brr) {
+            Offset::Forward(x) => assert_eq!(x, 0),
+            Offset::Reverse(_) => assert!(false)
+        }
     }
 
     #[test]
@@ -183,8 +271,24 @@ mod test {
 
         let reference_entropy = positional_entropy(&mut reference);
         let comparison_entropy = positional_entropy(&mut comparison);
-        let index = minimize_mse(reference_entropy, comparison_entropy);
+        let index = match minimize_mse(reference_entropy, comparison_entropy) {
+            Offset::Forward(x) => x,
+            Offset::Reverse(_) => panic!("Unexpected reverse")
+        };
 
+        assert_eq!(index, 5);
+    }
+
+    #[test]
+    fn rc_offset() {
+        let mut reference = reader();
+        let mut comparison = rc_offset_reader();
+        let reference_entropy = positional_entropy(&mut reference);
+        let comparison_entropy = positional_entropy(&mut comparison);
+        let index = match minimize_mse(reference_entropy, comparison_entropy) {
+            Offset::Forward(_) => panic!("Unexpected forward"),
+            Offset::Reverse(x) => x
+        };
         assert_eq!(index, 5);
     }
 }
