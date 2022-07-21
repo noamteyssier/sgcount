@@ -3,7 +3,7 @@ use fxread::initialize_reader;
 use rayon::prelude::*;
 use indicatif::ProgressBar;
 use std::thread;
-use crate::{Permuter, Counter, Library, Trimmer};
+use crate::{Permuter, Counter, Library};
 use crate::results::write_results;
 use crate::progress::*;
 
@@ -18,10 +18,8 @@ fn count_sample(
         pb: Option<&ProgressBar>) -> Result<Counter> {
 
     let reader = initialize_reader(path)?;
-    let trimmer = Trimmer::from_reader(reader, offset, library.size());
-
     start_progress_bar_ref(&pb, format!("Processing: {}", name));
-    let counter = Counter::new(trimmer, &library, &permuter);
+    let counter = Counter::new(reader, &library, &permuter, offset, library.size());
     finish_progress_bar_ref(&pb, format!("Finished: {}", name));
 
     Ok(counter)
