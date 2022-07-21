@@ -36,7 +36,7 @@ pub use fxread::initialize_reader;
 pub use library::Library;
 pub use counter::Counter;
 pub use permutes::Permuter;
-pub use offsetter::entropy_offset;
+pub use offsetter::{Offset, entropy_offset};
 pub use count::count;
 use progress::*;
 
@@ -64,6 +64,10 @@ struct Args {
     /// Adapter Offset
     #[clap(short='a', long, value_parser)]
     offset: Option<usize>,
+
+    /// Read Direction (reverse complement reads)
+    #[clap(short='a', long)]
+    reverse: bool,
 
     /// Allow One Off Mismatch
     #[clap(short='m', long)]
@@ -105,7 +109,7 @@ fn calculate_offset(
         library_path: &String,
         input_paths: &Vec<String>,
         subsample: Option<usize>,
-        quiet: bool) -> Result<usize> { 
+        quiet: bool) -> Result<Offset> { 
 
     let subsample = match subsample{
         Some(n) => n,
@@ -117,7 +121,7 @@ fn calculate_offset(
     };
     start_progress_bar(&pb, "Calculating Offset".to_string());
     let offset = entropy_offset(library_path, input_paths, subsample)?;
-    finish_progress_bar(&pb, format!("Calculated Offset: {}bp", offset));
+    finish_progress_bar(&pb, format!("Calculated Offset: {:?}-bp", offset));
     Ok(offset)
 }
 
@@ -137,7 +141,10 @@ fn main() -> Result<()> {
 
     // calculates offset if required
     let offset = match args.offset {
-        Some(o) => o,
+        Some(o) => match args.reverse {
+            true => Offset::Reverse(o),
+            false => Offset::Forward(o)
+        },
         None => calculate_offset(&args.library_path, &args.input_paths, args.subsample, args.quiet)?
     };
 
