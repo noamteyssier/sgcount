@@ -37,6 +37,7 @@ pub mod progress;
 pub use fxread::initialize_reader;
 pub use library::Library;
 pub use counter::Counter;
+use offsetter::entropy_offset_group;
 pub use permutes::Permuter;
 pub use offsetter::{Offset, entropy_offset};
 pub use count::count;
@@ -68,7 +69,7 @@ struct Args {
     offset: Option<usize>,
 
     /// Read Direction (reverse complement reads)
-    #[clap(short='a', long)]
+    #[clap(short='r', long)]
     reverse: bool,
 
     /// Allow One Off Mismatch
@@ -111,7 +112,7 @@ fn calculate_offset(
         library_path: &String,
         input_paths: &Vec<String>,
         subsample: Option<usize>,
-        quiet: bool) -> Result<Offset> { 
+        quiet: bool) -> Result<Vec<Offset>> { 
 
     let subsample = match subsample{
         Some(n) => n,
@@ -122,8 +123,8 @@ fn calculate_offset(
         false => Some(initialize_progress_bar())
     };
     start_progress_bar(&pb, "Calculating Offset".to_string());
-    let offset = entropy_offset(library_path, input_paths, subsample)?;
-    finish_progress_bar(&pb, format!("Calculated Offset: {:?}-bp", offset));
+    let offset = entropy_offset_group(library_path, input_paths, subsample)?;
+    finish_progress_bar(&pb, format!("Calculated Offsets: {:?}", offset));
     Ok(offset)
 }
 
@@ -159,8 +160,8 @@ fn main() -> Result<()> {
     // calculates offset if required
     let offset = match args.offset {
         Some(o) => match args.reverse {
-            true => Offset::Reverse(o),
-            false => Offset::Forward(o)
+            true => vec![Offset::Reverse(o); args.input_paths.len()],
+            false => vec![Offset::Forward(o); args.input_paths.len()]
         },
         None => calculate_offset(&args.library_path, &args.input_paths, args.subsample, args.quiet)?
     };
