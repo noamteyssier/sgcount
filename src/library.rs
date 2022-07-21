@@ -77,10 +77,14 @@ impl Library {
     fn table_from_reader(reader: FxReader) -> HashMap<String, String> {
         reader
             .into_iter()
-            .map(|x| (
-                    x.seq().to_string(), 
-                    x.id().to_string()))
-            .collect()
+            .fold(
+                HashMap::new(),
+                |mut map, x| {
+                    match map.insert(x.seq().to_string(), x.id().to_string()) {
+                        Some(_) => panic!("Unexpected duplicate sequence in library found: {}", x.seq()),
+                        None => map
+                    }
+                })
     }
 }
 
@@ -92,6 +96,11 @@ mod test {
 
     fn reader() -> Box<dyn FastxRead<Item = Record>> {
         let sequence: &'static [u8] = b">seq.0\nACTG\n";
+        Box::new(FastaReader::new(sequence))
+    }
+
+    fn duplicate_reader() -> Box<dyn FastxRead<Item = Record>> {
+        let sequence: &'static [u8] = b">seq.0\nACTG\n>seq.1\nACTG\n";
         Box::new(FastaReader::new(sequence))
     }
 
@@ -107,5 +116,11 @@ mod test {
         let library = Library::from_reader(reader()).unwrap();
         assert_eq!(library.contains("ACTG"), Some(&String::from("seq.0")));
         assert_eq!(library.contains("ACTT"), None);
+    }
+
+    #[test]
+    #[should_panic]
+    fn duplicates() {
+        Library::from_reader(duplicate_reader()).unwrap();
     }
 }
