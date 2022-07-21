@@ -3,7 +3,7 @@ use fxread::initialize_reader;
 use rayon::prelude::*;
 use indicatif::ProgressBar;
 use std::thread;
-use crate::{Permuter, Counter, Library};
+use crate::{Permuter, Counter, Library, Offset};
 use crate::results::write_results;
 use crate::progress::*;
 
@@ -12,7 +12,7 @@ use crate::progress::*;
 fn count_sample(
         path: &String,
         name: &String,
-        offset: usize,
+        offset: Offset,
         library: &Library,
         permuter: &Option<Permuter>,
         pb: Option<&ProgressBar>) -> Result<Counter> {
@@ -48,7 +48,7 @@ pub fn count(
     input_paths: Vec<String>,
     sample_names: Vec<String>,
     output_path: Option<String>,
-    offset: usize,
+    offset: Offset,
     mismatch: bool,
     quiet: bool) -> Result<()> {
 
