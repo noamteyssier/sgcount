@@ -82,8 +82,7 @@ impl Permuter {
             .iter()
             .enumerate()
             .map(|(idx, _)| Self::sequence_regions(sequence, idx))
-            .map(|(p,x,s)| Self::build_permutations(p, s, x, lexicon))
-            .flatten()
+            .flat_map(|(p,x,s)| Self::build_permutations(p, s, x, lexicon))
             .collect()
     }
 
