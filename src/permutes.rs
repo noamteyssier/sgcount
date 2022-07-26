@@ -109,7 +109,7 @@ impl Permuter {
         lexicon
             .iter()
             .filter(move |y| **y != poschar[0])
-            .map(|y| Self::build_permutation(prefix, suffix, y))
+            .map(|y| Self::build_permutation(prefix, suffix, *y))
             .collect()      
     }
 
@@ -118,11 +118,11 @@ impl Permuter {
     fn build_permutation(
             prefix: &[u8], 
             suffix: &[u8], 
-            insertion: &u8) -> Vec<u8> 
+            insertion: u8) -> Vec<u8> 
     {
         let mut sequence = Vec::new();
         sequence.extend_from_slice(prefix);
-        sequence.push(*insertion);
+        sequence.push(insertion);
         sequence.extend_from_slice(suffix);
         sequence
     }
