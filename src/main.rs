@@ -31,6 +31,9 @@ pub mod offsetter;
 /// Module for Performing Individual Sample Counting
 pub mod count;
 
+/// Module for Mapping sgRNAs to their Parent Genes
+pub mod genemap;
+
 /// Module for utility functions regarding progress spinners
 pub mod progress;
 
@@ -41,6 +44,7 @@ use offsetter::entropy_offset_group;
 pub use permutes::Permuter;
 pub use offsetter::{Offset, entropy_offset};
 pub use count::count;
+pub use genemap::GeneMap;
 use progress::{finish_progress_bar, initialize_progress_bar, start_progress_bar};
 
 
@@ -66,7 +70,7 @@ struct Args {
 
     /// Gene to sgRNA mapping
     #[clap(short, long, value_parser)]
-    g2s: Option<String>,
+    genemap: Option<String>,
 
     /// Adapter Offset
     #[clap(short='a', long, value_parser)]
@@ -153,6 +157,9 @@ fn main() -> Result<()> {
         Some(o) => if args.reverse { vec![Offset::Reverse(o); args.input_paths.len()] } else { vec![Offset::Forward(o); args.input_paths.len()] },
         None => calculate_offset(&args.library_path, &args.input_paths, args.subsample, args.quiet)?
     };
+
+    // builds gene map is provided
+    let _genemap = args.genemap.map(|g| GeneMap::new(&g));
 
     // perform counting
     count(
