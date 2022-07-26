@@ -59,21 +59,15 @@ fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64>{
                     .enumerate()
                     .map(|(idx, c)| (idx, base_map(c)))
                     .for_each(|(idx, jdx)| {
-                        match jdx {
-                            
+                        if let Some(j) = jdx {
                             // increment the nucleotide index and at the position
-                            Some(j) => {
-                                posmat[[idx, j]] += 1.;
-                            },
-
-                            // increment each nucleotide index if an `N` is found (as it could be
-                            // anything)
-                            None => {
-                                posmat[[idx, 0]] += 1.;
-                                posmat[[idx, 1]] += 1.;
-                                posmat[[idx, 2]] += 1.;
-                                posmat[[idx, 3]] += 1.;
-                            }
+                            posmat[[idx, j]] += 1.;
+                        } else {
+                            // increment each nucleotide index if an `N` is found (as it could be anything)
+                            posmat[[idx, 0]] += 1.;
+                            posmat[[idx, 1]] += 1.;
+                            posmat[[idx, 2]] += 1.;
+                            posmat[[idx, 3]] += 1.;
                         };
                     });
                 posmat
