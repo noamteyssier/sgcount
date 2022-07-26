@@ -52,7 +52,7 @@ impl Permuter {
 
     /// Publically exposes the internal [`HashMap`] to recover the parent sequence
     /// of a potential permuted sequence.
-    pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
+    #[must_use] pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
         self.map.get(token)
     }
 
@@ -162,7 +162,7 @@ impl Permuter {
             table: &mut PermuteMap) 
     {
         table.remove(permutation);
-        null.insert(permutation.to_owned());
+        null.insert(permutation.clone());
     }
 
     /// Case when a newly generated permutation has not been seen before. This then
@@ -172,7 +172,7 @@ impl Permuter {
             sequence: &[u8], 
             table: &mut PermuteMap) 
     {
-        table.insert(permutation.to_owned(), sequence.to_owned());
+        table.insert(permutation.clone(), sequence.to_owned());
     }
 }
 
