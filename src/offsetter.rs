@@ -191,8 +191,8 @@ pub fn entropy_offset(
 /// the MSE of Positional Entropy Observed in the Reference
 /// For Each Provided Path
 pub fn entropy_offset_group(
-        library_path: &String,
-        input_paths: &Vec<String>,
+        library_path: &str,
+        input_paths: &[String],
         subsample: usize) -> Result<Vec<Offset>>
 {
     let mut reference = initialize_reader(&library_path)?;
