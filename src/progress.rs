@@ -1,7 +1,7 @@
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 /// Initializes a Multiprogress bar for parallel logging
-pub fn initialize_multi_progress(sample_names: &[String]) -> (Option<MultiProgress>, Option<Vec<ProgressBar>>) {
+#[must_use] pub fn initialize_multi_progress(sample_names: &[String]) -> (Option<MultiProgress>, Option<Vec<ProgressBar>>) {
     let mp = MultiProgress::new();
     let progress_bars: Vec<ProgressBar> = sample_names
         .iter()
@@ -17,7 +17,7 @@ pub fn initialize_multi_progress(sample_names: &[String]) -> (Option<MultiProgre
 }
 
 /// Initializes a progress spinner
-pub fn initialize_progress_bar() -> ProgressBar {
+#[must_use] pub fn initialize_progress_bar() -> ProgressBar {
     ProgressBar::new_spinner()
         .with_style(ProgressStyle::default_spinner()
             .template("{prefix} {spinner} [{elapsed_precise}] {msg}"))
