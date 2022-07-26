@@ -156,10 +156,7 @@ fn main() -> Result<()> {
 
     // calculates offset if required
     let offset = match args.offset {
-        Some(o) => match args.reverse {
-            true => vec![Offset::Reverse(o); args.input_paths.len()],
-            false => vec![Offset::Forward(o); args.input_paths.len()]
-        },
+        Some(o) => if args.reverse { vec![Offset::Reverse(o); args.input_paths.len()] } else { vec![Offset::Forward(o); args.input_paths.len()] },
         None => calculate_offset(&args.library_path, &args.input_paths, args.subsample, args.quiet)?
     };
 
