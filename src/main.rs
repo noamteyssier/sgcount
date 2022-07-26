@@ -31,7 +31,7 @@ pub mod offsetter;
 /// Module for Performing Individual Sample Counting
 pub mod count;
 
-/// Module for Mapping sgRNAs to their Parent Genes
+/// Module for Mapping `sgRNAs` to their Parent Genes
 pub mod genemap;
 
 /// Module for utility functions regarding progress spinners
