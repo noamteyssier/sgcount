@@ -48,7 +48,7 @@ pub fn count(
     input_paths: Vec<String>,
     sample_names: Vec<String>,
     output_path: Option<String>,
-    offset: Offset,
+    offset: Vec<Offset>,
     mismatch: bool,
     quiet: bool) -> Result<()> {
 
@@ -77,8 +77,9 @@ pub fn count(
     let results: Result<Vec<Counter>> = input_paths
         .into_par_iter()
         .zip(&sample_names)
+        .zip(offset)
         .enumerate()
-        .map(|(idx, (path, name))| 
+        .map(|(idx, ((path, name), offset))| 
             count_sample(
                 &path, 
                 name, 
