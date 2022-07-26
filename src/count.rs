@@ -87,7 +87,7 @@ pub fn count(
     // join multiprogress if not quiet
     if let Some(m) = mp { m.join().unwrap()? };
 
-    write_results(output_path, &results?, &library, sample_names)?;
+    write_results(output_path, &results?, &library, sample_names, genemap)?;
 
     Ok(())
 }
