@@ -162,7 +162,7 @@ fn assign_offset(
 fn minimize_mse(reference: Array1<f64>, comparison: Array1<f64>) -> Offset {
     let size = comparison.len() - reference.len() + 1;
     assert!(size > 0);
-    let rev_comparison = comparison.iter().rev().map(|x| *x).collect();
+    let rev_comparison = comparison.iter().rev().copied().collect();
 
     let mse_forward = windowed_mse(&reference, &comparison);
     let mse_reverse = windowed_mse(&reference, &rev_comparison);
