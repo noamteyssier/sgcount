@@ -56,7 +56,9 @@ pub fn write_results(
         .map(|alias| {
             results
                 .iter()
-                .fold(String::from(alias), |mut accum, x| {
+                .fold(
+                    String::from_utf8(alias.to_vec()).expect("invalid utf8"),
+                    |mut accum, x| {
                     accum += &format!("\t{}", x.get_value(alias));
                     accum
                 })
