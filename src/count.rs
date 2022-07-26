@@ -95,10 +95,8 @@ pub fn count(
         .collect();
 
     // join multiprogress if not quiet
-    match mp {
-        Some(m) => m.join().unwrap()?,
-        None => {}
-    };
+    //if let Some(mp) { m.join().unwrap()? };
+    if let Some(m) = mp { m.join().unwrap()? };
 
     write_results(output_path, &results?, &library, &sample_names)?;
 
