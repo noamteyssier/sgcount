@@ -71,10 +71,7 @@ pub fn count(
     };
     
     // start multiprogress if not quiet
-    let mp = match mp {
-        Some(m) => Some(thread::spawn(move || m.join())),
-        None => None
-    };
+    let mp = mp.map(|m| thread::spawn(move || m.join()));
 
     // main counting function
     let results: Result<Vec<Counter>> = input_paths
@@ -84,7 +81,7 @@ pub fn count(
         .map(|(idx, (path, name))| 
             count_sample(
                 &path, 
-                &name, 
+                name, 
                 offset, 
                 &library, 
                 &permuter, 
@@ -95,7 +92,6 @@ pub fn count(
         .collect();
 
     // join multiprogress if not quiet
-    //if let Some(mp) { m.join().unwrap()? };
     if let Some(m) = mp { m.join().unwrap()? };
 
     write_results(output_path, &results?, &library, &sample_names)?;
