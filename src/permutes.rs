@@ -168,11 +168,11 @@ impl Permuter {
     /// Case when a newly generated permutation has not been seen before. This then
     /// adds it to the `map` set and links it to its parent sequence.
     fn insert_to_table(
-            permutation: &Vec<u8>, 
+            permutation: &[u8], 
             sequence: &[u8], 
             table: &mut PermuteMap) 
     {
-        table.insert(permutation.clone(), sequence.to_owned());
+        table.insert(permutation.to_vec(), sequence.to_owned());
     }
 }
 
