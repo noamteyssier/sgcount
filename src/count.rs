@@ -59,16 +59,10 @@ pub fn count(
         )?;
 
     // generate permuter if necessary
-    let permuter = match mismatch{
-        true => Some(generate_permutations(&library, quiet)),
-        false => None
-    };
+    let permuter = if mismatch { Some(generate_permutations(&library, quiet)) } else { None };
 
     // generate multiprogress and individual progress bars
-    let (mp, progress_bars) = match quiet {
-        true => (None, None),
-        false => initialize_multi_progress(&sample_names)
-    };
+    let (mp, progress_bars) = if quiet { (None, None) } else { initialize_multi_progress(&sample_names) };
     
     // start multiprogress if not quiet
     let mp = mp.map(|m| thread::spawn(move || m.join()));
