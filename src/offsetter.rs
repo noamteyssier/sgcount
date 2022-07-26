@@ -15,7 +15,7 @@ pub enum Offset {
 }
 impl Offset {
     /// Returns the internal index of the offset
-    pub fn index(&self) -> &usize {
+    #[must_use] pub fn index(&self) -> &usize {
         match self {
             Self::Forward(index) => index,
             Self::Reverse(index) => index,
@@ -43,7 +43,7 @@ fn base_map(c: &u8) -> Option<usize> {
     }
 }
 
-/// Creates a 2D matrix of shape (seq_size, 4) where each row represents the positional
+/// Creates a 2D matrix of shape (`seq_size`, 4) where each row represents the positional
 /// index of the sequence and each column represents the number of observed nucleotides 
 /// at that position
 fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64>{
@@ -164,8 +164,8 @@ fn minimize_mse(reference: &Array1<f64>, comparison: &Array1<f64>) -> Offset {
     assert!(size > 0);
     let rev_comparison = comparison.iter().rev().copied().collect();
 
-    let mse_forward = windowed_mse(&reference, &comparison);
-    let mse_reverse = windowed_mse(&reference, &rev_comparison);
+    let mse_forward = windowed_mse(reference, comparison);
+    let mse_reverse = windowed_mse(reference, &rev_comparison);
 
     assign_offset(mse_forward, mse_reverse)
 }
@@ -195,13 +195,13 @@ pub fn entropy_offset_group(
         input_paths: &[String],
         subsample: usize) -> Result<Vec<Offset>>
 {
-    let mut reference = initialize_reader(&library_path)?;
+    let mut reference = initialize_reader(library_path)?;
     let reference_entropy = positional_entropy(&mut reference);
     let result: Vec<Offset> = input_paths
         .iter()
         .map(|x| 
             initialize_reader(x)
-                .expect(&format!("Unable to open file: {}", x))
+                .unwrap_or_else(|_| panic!("Unable to open file: {}", x))
                 .take(subsample))
         .map(|mut x| positional_entropy(&mut x))
         .map(|x| minimize_mse(&reference_entropy, &x))
