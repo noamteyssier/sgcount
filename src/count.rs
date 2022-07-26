@@ -5,7 +5,7 @@ use indicatif::ProgressBar;
 use std::thread;
 use crate::{Permuter, Counter, Library, Offset};
 use crate::results::write_results;
-use crate::progress::*;
+use crate::progress::{finish_progress_bar, finish_progress_bar_ref, initialize_multi_progress, initialize_progress_bar, start_progress_bar, start_progress_bar_ref};
 
 /// Counts the number of matching sgRNA-Reads for a provided
 /// filepath
