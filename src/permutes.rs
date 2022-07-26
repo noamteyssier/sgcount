@@ -1,6 +1,8 @@
 use hashbrown::{HashSet, HashMap};
 
 const LEXICON: [u8; 5] = [b'A', b'C', b'G', b'T', b'N'];
+type NullSet = HashSet<Vec<u8>>;
+type PermuteMap = HashMap<Vec<u8>, Vec<u8>>;
 
 /// Calculates all unambiguous single edit distance permutations 
 /// for a set of sequences (hamming distance = 1)
@@ -30,8 +32,8 @@ const LEXICON: [u8; 5] = [b'A', b'C', b'G', b'T', b'N'];
 ///  `CG`).
 ///
 pub struct Permuter {
-    map: HashMap<Vec<u8>, Vec<u8>>,
-    _null: HashSet<Vec<u8>>
+    map: PermuteMap,
+    _null: NullSet
 }
 
 impl Permuter {
@@ -59,7 +61,7 @@ impl Permuter {
     /// These are then folded into the `map` and `_null` data types depending on the predicate
     /// described in [`Self::insert_sequence`]
     fn build<'a>(
-            sequences: impl Iterator<Item = &'a Vec<u8>>) -> (HashMap<Vec<u8>, Vec<u8>>, HashSet<Vec<u8>>) 
+            sequences: impl Iterator<Item = &'a Vec<u8>>) -> (PermuteMap, NullSet) 
     {
         sequences
             .map(|seq| (seq, Self::permute_sequence(seq, &LEXICON)))
@@ -136,8 +138,8 @@ impl Permuter {
     fn insert_sequence(
             sequence: &[u8], 
             permutation: &Vec<u8>, 
-            null: &mut HashSet<Vec<u8>>, 
-            table: &mut HashMap<Vec<u8>, Vec<u8>>) 
+            null: &mut NullSet, 
+            table: &mut PermuteMap) 
     {
         if !null.contains(sequence) {
             null.insert(sequence.to_owned());
@@ -156,8 +158,8 @@ impl Permuter {
     /// set so it cannot be used again.
     fn insert_to_null(
             permutation: &Vec<u8>, 
-            null: &mut HashSet<Vec<u8>>, 
-            table: &mut HashMap<Vec<u8>, Vec<u8>>) 
+            null: &mut NullSet, 
+            table: &mut PermuteMap) 
     {
         table.remove(permutation);
         null.insert(permutation.to_owned());
@@ -168,7 +170,7 @@ impl Permuter {
     fn insert_to_table(
             permutation: &Vec<u8>, 
             sequence: &[u8], 
-            table: &mut HashMap<Vec<u8>, Vec<u8>>) 
+            table: &mut PermuteMap) 
     {
         table.insert(permutation.to_owned(), sequence.to_owned());
     }
