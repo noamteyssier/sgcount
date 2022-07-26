@@ -10,8 +10,8 @@ use crate::progress::*;
 /// Counts the number of matching sgRNA-Reads for a provided
 /// filepath
 fn count_sample(
-        path: &String,
-        name: &String,
+        path: &str,
+        name: &str,
         offset: Offset,
         library: &Library,
         permuter: &Option<Permuter>,
