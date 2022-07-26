@@ -66,10 +66,11 @@ impl Library {
     /// Validates that all sequences are of equivalent length and returns
     /// that length
     fn calculate_base_size(table: &HashMap<Vec<u8>, Vec<u8>>) -> Result<usize> {
-        match Self::validate_unique_size(table.keys().collect()) {
-                true => Ok(Self::get_key_size(table)),
-                false => Err(anyhow::anyhow!("Library sequence sizes are inconsistent"))
-            }
+        if Self::validate_unique_size(table.keys().collect()) {
+            Ok(Self::get_key_size(table))
+        } else {
+            Err(anyhow::anyhow!("Library sequence sizes are inconsistent"))
+        }
     }
 
     /// Main init iterator which reads in all sequences fromthe reader and
