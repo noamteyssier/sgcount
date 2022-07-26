@@ -159,7 +159,10 @@ fn main() -> Result<()> {
     };
 
     // builds gene map is provided
-    let _genemap = args.genemap.map(|g| GeneMap::new(&g));
+    let genemap = match args.genemap {
+        Some(g) => Some(GeneMap::new(&g)?),
+        None => None
+    };
 
     // perform counting
     count(
@@ -169,6 +172,7 @@ fn main() -> Result<()> {
         args.output_path,
         offset,
         args.mismatch,
+        &genemap,
         args.quiet)?;
 
     Ok(())
