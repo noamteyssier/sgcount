@@ -148,9 +148,7 @@ fn main() -> Result<()> {
 
     // generates sample names if required
     let sample_names = match args.sample_names {
-        Some(s) => if s.len() != args.input_paths.len() { 
-                panic!("Must provide as many sample names as there are input files") 
-            } else { s },
+        Some(s) => if s.len() == args.input_paths.len() { s } else { panic!("Must provide as many sample names as there are input files") },
         None => generate_sample_names(&args.input_paths)
     };
 
