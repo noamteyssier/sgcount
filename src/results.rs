@@ -1,7 +1,5 @@
 use anyhow::Result;
-use crate::GeneMap;
-
-use super::{Counter, Library};
+use crate::{Counter, Library, GeneMap};
 use std::{fs::File, io::Write, fmt::Write as fmtWrite};
 
 
