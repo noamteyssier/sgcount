@@ -23,7 +23,7 @@ impl Library {
 
     /// Publically exposes the internal [`HashMap`] and returns
     /// the optional value (AKA its sequence id/header) to a provided token. 
-    pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
+    #[must_use] pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
         match self.table.contains_key(token) {
             true => self.alias(token),
             false => None
@@ -31,7 +31,7 @@ impl Library {
     }
 
     /// Returns the alias to a sequence (AKA its sequence id / header)
-    pub fn alias(&self, token: &[u8]) -> Option<&Vec<u8>> {
+    #[must_use] pub fn alias(&self, token: &[u8]) -> Option<&Vec<u8>> {
         self.table.get(token)
     }
 
@@ -46,7 +46,7 @@ impl Library {
     }
 
     /// The unique sequence size of all elements within the library
-    pub fn size(&self) -> usize {
+    #[must_use] pub fn size(&self) -> usize {
         self.size
     }
 
