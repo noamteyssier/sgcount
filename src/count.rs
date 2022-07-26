@@ -44,9 +44,9 @@ fn generate_permutations(
 
 /// Counts the number of matching sgRNA-reads for all provided filepaths
 pub fn count(
-    library_path: String,
+    library_path: &str,
     input_paths: Vec<String>,
-    sample_names: Vec<String>,
+    sample_names: &[String],
     output_path: Option<String>,
     offset: Vec<Offset>,
     mismatch: bool,
@@ -55,14 +55,14 @@ pub fn count(
 
     // generate library
     let library = Library::from_reader(
-        initialize_reader(&library_path)?
+        initialize_reader(library_path)?
         )?;
 
     // generate permuter if necessary
     let permuter = if mismatch { Some(generate_permutations(&library, quiet)) } else { None };
 
     // generate multiprogress and individual progress bars
-    let (mp, progress_bars) = if quiet { (None, None) } else { initialize_multi_progress(&sample_names) };
+    let (mp, progress_bars) = if quiet { (None, None) } else { initialize_multi_progress(sample_names) };
     
     // start multiprogress if not quiet
     let mp = mp.map(|m| thread::spawn(move || m.join()));
@@ -70,7 +70,7 @@ pub fn count(
     // main counting function
     let results: Result<Vec<Counter>> = input_paths
         .into_par_iter()
-        .zip(&sample_names)
+        .zip(sample_names)
         .zip(offset)
         .enumerate()
         .map(|(idx, ((path, name), offset))| 
@@ -89,7 +89,7 @@ pub fn count(
     // join multiprogress if not quiet
     if let Some(m) = mp { m.join().unwrap()? };
 
-    write_results(output_path, &results?, &library, &sample_names)?;
+    write_results(output_path, &results?, &library, sample_names)?;
 
     Ok(())
 }

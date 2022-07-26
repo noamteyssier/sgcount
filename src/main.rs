@@ -152,9 +152,9 @@ fn main() -> Result<()> {
 
     // perform counting
     count(
-        args.library_path,
+        &args.library_path,
         args.input_paths,
-        sample_names,
+        &sample_names,
         args.output_path,
         offset,
         args.mismatch,
