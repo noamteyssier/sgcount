@@ -63,7 +63,7 @@ fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64>{
                             
                             // increment the nucleotide index and at the position
                             Some(j) => {
-                                posmat[[idx, j]] += 1.
+                                posmat[[idx, j]] += 1.;
                             },
 
                             // increment each nucleotide index if an `N` is found (as it could be
