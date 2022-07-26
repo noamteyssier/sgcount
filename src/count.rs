@@ -3,7 +3,7 @@ use fxread::initialize_reader;
 use rayon::prelude::*;
 use indicatif::ProgressBar;
 use std::thread;
-use crate::{Permuter, Counter, Library, Offset};
+use crate::{Permuter, Counter, Library, Offset, GeneMap};
 use crate::results::write_results;
 use crate::progress::{finish_progress_bar, finish_progress_bar_ref, initialize_multi_progress, initialize_progress_bar, start_progress_bar, start_progress_bar_ref};
 
@@ -47,6 +47,7 @@ pub fn count(
     output_path: Option<String>,
     offset: Vec<Offset>,
     mismatch: bool,
+    genemap: &Option<GeneMap>,
     quiet: bool) -> Result<()> {
 
 
