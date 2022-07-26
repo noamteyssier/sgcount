@@ -43,4 +43,9 @@ impl GeneMap {
             })?;
         Ok(map)
     }
+
+    /// Gets the associated gene for a provided `sgRNA`
+    #[must_use] pub fn get(&self, sgrna: &[u8]) -> Option<&Vec<u8>> {
+        self.map.get(sgrna)
+    }
 }
