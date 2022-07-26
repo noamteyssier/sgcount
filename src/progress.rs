@@ -39,7 +39,7 @@ pub fn finish_progress_bar_ref(pb: &Option<&ProgressBar>, msg: String) {
     match pb {
         Some(p) => {
             p.set_prefix("🗸");
-            p.finish_with_message(msg)
+            p.finish_with_message(msg);
         }
         None => {}
     }
@@ -61,7 +61,7 @@ pub fn finish_progress_bar(pb: &Option<ProgressBar>, msg: String) {
     match pb {
         Some(p) => {
             p.set_prefix("🗸");
-            p.finish_with_message(msg)
+            p.finish_with_message(msg);
         }
         None => {}
     }
