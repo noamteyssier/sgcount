@@ -108,8 +108,8 @@ fn generate_sample_names(
 
 /// Calculates Offset if Required
 fn calculate_offset(
-        library_path: &String,
-        input_paths: &Vec<String>,
+        library_path: &str,
+        input_paths: &[String],
         subsample: Option<usize>,
         quiet: bool) -> Result<Offset> { 
 
