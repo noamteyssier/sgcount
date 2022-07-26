@@ -16,8 +16,8 @@ fxread = "0.2"
 hashbrown = "0.12"
 anyhow = "1"
 clap = { version = "3.2", features = ["derive"] }
-indicatif = {version = "*", features = ["rayon"]}
 rayon = "1.5"
 ndarray = "0.15"
 ndarray-stats = "0.5"
 bstr = "0.2.17"
+indicatif = { version = "0.16.2", features = ["rayon"] }
