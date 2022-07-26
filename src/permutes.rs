@@ -64,7 +64,7 @@ impl Permuter {
             sequences: impl Iterator<Item = &'a Vec<u8>>) -> (PermuteMap, NullSet) 
     {
         sequences
-            .map(|seq| (seq, Self::permute_sequence(seq, &LEXICON)))
+            .map(|seq| (seq, Self::permute_sequence(seq, LEXICON)))
             .fold(
                 (HashMap::new(), HashSet::new()), 
                 |(mut table, mut null), (seq, permute)| {
@@ -78,7 +78,7 @@ impl Permuter {
     /// Generates all possible sequence permutations for a provided sequence and lexicon.
     fn permute_sequence(
             sequence: &[u8], 
-            lexicon: &[u8; 5]) -> Vec<Vec<u8>> 
+            lexicon: [u8; 5]) -> Vec<Vec<u8>> 
     {
         sequence
             .iter()
@@ -104,7 +104,7 @@ impl Permuter {
             prefix: &[u8], 
             suffix: &[u8], 
             poschar: &[u8], 
-            lexicon: &[u8; 5]) -> Vec<Vec<u8>> 
+            lexicon: [u8; 5]) -> Vec<Vec<u8>> 
     {
         lexicon
             .iter()
