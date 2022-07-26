@@ -19,7 +19,7 @@ fn count_sample(
 
     let reader = initialize_reader(path)?;
     start_progress_bar_ref(&pb, format!("Processing: {}", name));
-    let counter = Counter::new(reader, &library, &permuter, offset, library.size());
+    let counter = Counter::new(reader, library, permuter, offset, library.size());
     finish_progress_bar_ref(&pb, format!("Finished: {}", name));
 
     Ok(counter)
