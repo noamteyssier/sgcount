@@ -16,6 +16,7 @@ impl GeneMap {
         Ok( Self { map } )
     }
 
+    /// Validates the provided path exists
     fn validate_path(path: &str) -> Result<()> {
         if Path::new(path).exists() { 
             Ok(())
@@ -24,6 +25,7 @@ impl GeneMap {
         }
     }
 
+    /// Processes the tab delim file and panics if tabs are not found or duplicate sgRNAs are found
     fn build(path: &str) -> Result<HashMap<Vec<u8>, Vec<u8>>> {
         let file = File::open(path)?;
         let buffer = BufReader::new(file);
