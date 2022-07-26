@@ -4,7 +4,7 @@ use bstr::{io::BufReadExt, ByteSlice};
 use anyhow::{anyhow, Result};
 
 /// Container to handle mapping of gene identifiers and
-/// sgRNA identifiers
+/// `sgRNA` identifiers
 pub struct GeneMap {
     map: HashMap<Vec<u8>, Vec<u8>>
 }
