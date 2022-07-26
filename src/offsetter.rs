@@ -17,8 +17,7 @@ impl Offset {
     /// Returns the internal index of the offset
     #[must_use] pub fn index(&self) -> &usize {
         match self {
-            Self::Forward(index) => index,
-            Self::Reverse(index) => index,
+            Self::Forward(index) | Self::Reverse(index) => index,
         }
     }
 }
