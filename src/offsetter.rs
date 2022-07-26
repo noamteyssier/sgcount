@@ -125,8 +125,8 @@ fn windowed_mse(
 }
 
 fn assign_offset(
-        mse_forward: Array1<f64>, 
-        mse_reverse: Array1<f64>) -> Offset
+        mse_forward: &Array1<f64>, 
+        mse_reverse: &Array1<f64>) -> Offset
 {
     let argmin_forward = match mse_forward.argmin() {
         Ok(m) => m,
@@ -166,7 +166,7 @@ fn minimize_mse(reference: &Array1<f64>, comparison: &Array1<f64>) -> Offset {
     let mse_forward = windowed_mse(reference, comparison);
     let mse_reverse = windowed_mse(reference, &rev_comparison);
 
-    assign_offset(mse_forward, mse_reverse)
+    assign_offset(&mse_forward, &mse_reverse)
 }
 
 /// Calculates the Offset in the Comparison by Minimizing
