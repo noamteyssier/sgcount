@@ -18,9 +18,9 @@ fn count_sample(
         pb: Option<&ProgressBar>) -> Result<Counter> {
 
     let reader = initialize_reader(path)?;
-    start_progress_bar_ref(&pb, format!("Processing: {}", name));
+    start_progress_bar_ref(pb, format!("Processing: {}", name));
     let counter = Counter::new(reader, library, permuter, offset, library.size());
-    finish_progress_bar_ref(&pb, format!("Finished: {}", name));
+    finish_progress_bar_ref(pb, format!("Finished: {}", name));
 
     Ok(counter)
 }

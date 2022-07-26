@@ -24,7 +24,7 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 }
 
 /// Starts a progress bar that is an optional reference
-pub fn start_progress_bar_ref(pb: &Option<&ProgressBar>, msg: String) {
+pub fn start_progress_bar_ref(pb: Option<&ProgressBar>, msg: String) {
     match pb {
         Some(p) => {
             p.enable_steady_tick(75);
@@ -35,7 +35,7 @@ pub fn start_progress_bar_ref(pb: &Option<&ProgressBar>, msg: String) {
 }
 
 /// Finishes a progress bar that is an optional reference
-pub fn finish_progress_bar_ref(pb: &Option<&ProgressBar>, msg: String) {
+pub fn finish_progress_bar_ref(pb: Option<&ProgressBar>, msg: String) {
     match pb {
         Some(p) => {
             p.set_prefix("🗸");
