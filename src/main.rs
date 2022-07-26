@@ -127,11 +127,9 @@ fn calculate_offset(
 
 /// Validate Paths Exist
 fn validate_paths(input_paths: &[String]) {
-    input_paths
-        .iter()
-        .for_each(|x| {
-            if !Path::new(x).exists() { assert!(Path::new(x).exists(), "Provided filepath does not exist: {}", x); }
-        })
+    for x in input_paths.iter() {
+        if !Path::new(x).exists() { assert!(Path::new(x).exists(), "Provided filepath does not exist: {}", x); }
+    };
 }
 
 
