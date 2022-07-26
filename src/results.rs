@@ -68,7 +68,11 @@ fn append_count(
     counter: &Counter,
     accum: &mut String) 
 {
-    write!(accum, "\t{}", counter.get_value(alias)).expect("unable to write to string");
+    write!(
+        accum, 
+        "\t{}", 
+        counter.get_value(alias)
+    ).expect("unable to write to string");
 }
 
 /// Writes the results dataframe either to the provided path
