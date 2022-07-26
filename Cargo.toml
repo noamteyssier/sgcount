@@ -14,3 +14,4 @@ indicatif = {version = "*", features = ["rayon"]}
 rayon = "1.5"
 ndarray = "0.15"
 ndarray-stats = "0.5"
+bstr = "0.2.17"
