@@ -148,13 +148,12 @@ fn assign_offset(
         Err(why) => panic!("Unexpected minmax error in entropy: {}", why)
     };
 
-    match min_forward < min_reverse {
-        
+    if min_forward < min_reverse {
         // Reads are in forward directionality
-        true => Offset::Forward(argmin_forward),
-
+        Offset::Forward(argmin_forward)
+    } else {
         // Reads are in reverse directionality
-        false => Offset::Reverse(argmin_reverse)
+        Offset::Reverse(argmin_reverse)
     }
 }
 
