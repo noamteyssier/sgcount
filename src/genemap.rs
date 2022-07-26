@@ -36,8 +36,8 @@ impl GeneMap {
                     .unwrap_or_else(|| {panic!("Missing '\t' in gene map")});
                 let (gene, sgrna) = line.split_at(pos);
                 assert!(
-                    map.insert(sgrna.to_vec(), gene.to_vec()).is_some(),
-                    "Duplicate sgRNA key found in gene map: {}", std::str::from_utf8(sgrna).expect("invalid utf8")
+                    map.insert(sgrna[1..].to_vec(), gene.to_vec()).is_none(),
+                    "Duplicate sgRNA key found in gene map: {}", std::str::from_utf8(&sgrna[1..]).expect("invalid utf8")
                 );
                 Ok(true)
             })?;
