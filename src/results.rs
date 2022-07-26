@@ -65,8 +65,10 @@ pub fn write_results(
 
     let columns = generate_columns(names);
 
-    match path {
-        Some(p) => write_to_path(&p, iterable, columns),
-        None => {write_to_stdout(iterable, columns); Ok(())}
+    if let Some(p) = path {
+        write_to_path(&p, iterable, columns)
+    } else {
+        write_to_stdout(iterable, columns);
+        Ok(())
     }
 }
