@@ -80,9 +80,9 @@ struct Args {
     #[clap(short='r', long)]
     reverse: bool,
 
-    /// Allow One Off Mismatch
-    #[clap(short='m', long)]
-    mismatch: bool,
+    /// Disallow One Off Mismatch
+    #[clap(short='x', long)]
+    exact: bool,
 
     /// Number of Reads to Subsample in Determining Offset [default: 5000]
     #[clap(short='s', long)]
@@ -171,7 +171,7 @@ fn main() -> Result<()> {
         &sample_names,
         args.output_path,
         offset,
-        args.mismatch,
+        args.exact,
         &genemap,
         args.quiet)?;
 

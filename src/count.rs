@@ -46,7 +46,7 @@ pub fn count(
     sample_names: &[String],
     output_path: Option<String>,
     offset: Vec<Offset>,
-    mismatch: bool,
+    exact : bool,
     genemap: &Option<GeneMap>,
     quiet: bool) -> Result<()> {
 
@@ -62,7 +62,9 @@ pub fn count(
     }
 
     // generate permuter if necessary
-    let permuter = if mismatch { Some(generate_permutations(&library, quiet)) } else { None };
+    let permuter = if !exact { 
+        Some(generate_permutations(&library, quiet)) 
+    } else { None };
 
     // generate multiprogress and individual progress bars
     let (mp, progress_bars) = if quiet { (None, None) } else { initialize_multi_progress(sample_names) };
