@@ -57,7 +57,7 @@ pub fn write_results(
             results
                 .iter()
                 .fold(
-                    String::from_utf8(alias.to_vec()).expect("invalid utf8"),
+                    String::from_utf8(alias.clone()).expect("invalid utf8"),
                     |mut accum, x| {
                     write!(accum, "\t{}", x.get_value(alias)).expect("unable to write to string");
                     accum
