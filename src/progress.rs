@@ -25,44 +25,32 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 /// Starts a progress bar that is an optional reference
 pub fn start_progress_bar_ref(pb: Option<&ProgressBar>, msg: String) {
-    match pb {
-        Some(p) => {
-            p.enable_steady_tick(75);
-            p.set_message(msg);
-        },
-        None => {}
+    if let Some(p) = pb {
+        p.enable_steady_tick(75);
+        p.set_message(msg);
     }
 }
 
 /// Finishes a progress bar that is an optional reference
 pub fn finish_progress_bar_ref(pb: Option<&ProgressBar>, msg: String) {
-    match pb {
-        Some(p) => {
-            p.set_prefix("🗸");
-            p.finish_with_message(msg);
-        }
-        None => {}
+    if let Some(p) = pb {
+        p.set_prefix("🗸");
+        p.finish_with_message(msg);
     }
 }
 
 /// Starts an optional progress bar
 pub fn start_progress_bar(pb: &Option<ProgressBar>, msg: String) {
-    match pb {
-        Some(p) => {
-            p.enable_steady_tick(75);
-            p.set_message(msg);
-        },
-        None => {}
+    if let Some(p) = pb {
+        p.enable_steady_tick(75);
+        p.set_message(msg);
     }
 }
 
 /// Finishes an optional progress bar
 pub fn finish_progress_bar(pb: &Option<ProgressBar>, msg: String) {
-    match pb {
-        Some(p) => {
-            p.set_prefix("🗸");
-            p.finish_with_message(msg);
-        }
-        None => {}
+    if let Some(p) = pb {
+        p.set_prefix("🗸");
+        p.finish_with_message(msg);
     }
 }
