@@ -6,7 +6,7 @@ use std::{fs::File, io::Write, fmt::Write as fmtWrite};
 /// Writes the results dataframe to the provided path
 fn write_to_path(
         path: &str, iterable: impl Iterator<Item = String>, 
-        columns: String) -> Result<()>
+        columns: &str) -> Result<()>
 {
     let mut file = File::create(path)?;
     writeln!(file, "{}", columns)?;
@@ -20,7 +20,7 @@ fn write_to_path(
 /// Writes the results dataframe to stdout
 fn write_to_stdout(
         iterable: impl Iterator<Item = String>, 
-        columns: String) 
+        columns: &str) 
 {
     println!("{columns}");
     iterable
@@ -66,9 +66,9 @@ pub fn write_results(
     let columns = generate_columns(names);
 
     if let Some(p) = path {
-        write_to_path(&p, iterable, columns)
+        write_to_path(&p, iterable, &columns)
     } else {
-        write_to_stdout(iterable, columns);
+        write_to_stdout(iterable, &columns);
         Ok(())
     }
 }
