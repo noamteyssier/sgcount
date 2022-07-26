@@ -113,10 +113,7 @@ fn calculate_offset(
         subsample: Option<usize>,
         quiet: bool) -> Result<Offset> { 
 
-    let subsample = match subsample{
-        Some(n) => n,
-        None => 5000
-    };
+    let subsample = subsample.unwrap_or(5000);
     let pb = match quiet {
         true => None,
         false => Some(initialize_progress_bar())
