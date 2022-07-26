@@ -52,7 +52,7 @@ impl Permuter {
 
     /// Publically exposes the internal [`HashMap`] to recover the parent sequence
     /// of a potential permuted sequence.
-    pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
+    #[must_use] pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
         self.map.get(token)
     }
 
@@ -64,7 +64,7 @@ impl Permuter {
             sequences: impl Iterator<Item = &'a Vec<u8>>) -> (PermuteMap, NullSet) 
     {
         sequences
-            .map(|seq| (seq, Self::permute_sequence(seq, &LEXICON)))
+            .map(|seq| (seq, Self::permute_sequence(seq, LEXICON)))
             .fold(
                 (HashMap::new(), HashSet::new()), 
                 |(mut table, mut null), (seq, permute)| {
@@ -78,7 +78,7 @@ impl Permuter {
     /// Generates all possible sequence permutations for a provided sequence and lexicon.
     fn permute_sequence(
             sequence: &[u8], 
-            lexicon: &[u8; 5]) -> Vec<Vec<u8>> 
+            lexicon: [u8; 5]) -> Vec<Vec<u8>> 
     {
         sequence
             .iter()
@@ -104,12 +104,12 @@ impl Permuter {
             prefix: &[u8], 
             suffix: &[u8], 
             poschar: &[u8], 
-            lexicon: &[u8; 5]) -> Vec<Vec<u8>> 
+            lexicon: [u8; 5]) -> Vec<Vec<u8>> 
     {
         lexicon
             .iter()
             .filter(move |y| **y != poschar[0])
-            .map(|y| Self::build_permutation(prefix, suffix, y))
+            .map(|y| Self::build_permutation(prefix, suffix, *y))
             .collect()      
     }
 
@@ -118,11 +118,11 @@ impl Permuter {
     fn build_permutation(
             prefix: &[u8], 
             suffix: &[u8], 
-            insertion: &u8) -> Vec<u8> 
+            insertion: u8) -> Vec<u8> 
     {
         let mut sequence = Vec::new();
         sequence.extend_from_slice(prefix);
-        sequence.push(*insertion);
+        sequence.push(insertion);
         sequence.extend_from_slice(suffix);
         sequence
     }
@@ -146,9 +146,10 @@ impl Permuter {
         }
 
         if !null.contains(permutation) {
-            match table.contains_key(permutation) {
-                true => Self::insert_to_null(permutation, null, table),
-                false => Self::insert_to_table(permutation, sequence, table)
+            if table.contains_key(permutation) {
+                Self::insert_to_null(permutation, null, table);
+            } else {
+                Self::insert_to_table(permutation, sequence, table);
             }
         }
     }
@@ -162,17 +163,17 @@ impl Permuter {
             table: &mut PermuteMap) 
     {
         table.remove(permutation);
-        null.insert(permutation.to_owned());
+        null.insert(permutation.clone());
     }
 
     /// Case when a newly generated permutation has not been seen before. This then
     /// adds it to the `map` set and links it to its parent sequence.
     fn insert_to_table(
-            permutation: &Vec<u8>, 
+            permutation: &[u8], 
             sequence: &[u8], 
             table: &mut PermuteMap) 
     {
-        table.insert(permutation.to_owned(), sequence.to_owned());
+        table.insert(permutation.to_vec(), sequence.to_owned());
     }
 }
 

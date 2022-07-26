@@ -23,15 +23,12 @@ impl Library {
 
     /// Publically exposes the internal [`HashMap`] and returns
     /// the optional value (AKA its sequence id/header) to a provided token. 
-    pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
-        match self.table.contains_key(token) {
-            true => self.alias(token),
-            false => None
-        }
+    #[must_use] pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
+        if self.table.contains_key(token) { self.alias(token) } else { None }
     }
 
     /// Returns the alias to a sequence (AKA its sequence id / header)
-    pub fn alias(&self, token: &[u8]) -> Option<&Vec<u8>> {
+    #[must_use] pub fn alias(&self, token: &[u8]) -> Option<&Vec<u8>> {
         self.table.get(token)
     }
 
@@ -46,13 +43,14 @@ impl Library {
     }
 
     /// The unique sequence size of all elements within the library
-    pub fn size(&self) -> usize {
+    #[must_use] pub fn size(&self) -> usize {
         self.size
     }
 
     /// Validates that all sequences are of equivalent length
-    fn validate_unique_size(keys: Vec<&Vec<u8>>) -> bool {
+    fn validate_unique_size<'a>(keys: impl Iterator<Item = &'a Vec<u8>>) -> bool {
         keys
+            .collect::<Vec<&Vec<u8>>>()
             .windows(2)
             .map(|x| (x[0], x[1]))
             .all(|(x, y)| x.len() == y.len())
@@ -66,10 +64,11 @@ impl Library {
     /// Validates that all sequences are of equivalent length and returns
     /// that length
     fn calculate_base_size(table: &HashMap<Vec<u8>, Vec<u8>>) -> Result<usize> {
-        match Self::validate_unique_size(table.keys().collect()) {
-                true => Ok(Self::get_key_size(table)),
-                false => Err(anyhow::anyhow!("Library sequence sizes are inconsistent"))
-            }
+        if Self::validate_unique_size(table.keys()) {
+            Ok(Self::get_key_size(table))
+        } else {
+            Err(anyhow::anyhow!("Library sequence sizes are inconsistent"))
+        }
     }
 
     /// Main init iterator which reads in all sequences fromthe reader and

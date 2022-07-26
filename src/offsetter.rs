@@ -15,10 +15,9 @@ pub enum Offset {
 }
 impl Offset {
     /// Returns the internal index of the offset
-    pub fn index(&self) -> &usize {
+    #[must_use] pub fn index(&self) -> &usize {
         match self {
-            Self::Forward(index) => index,
-            Self::Reverse(index) => index,
+            Self::Forward(index) | Self::Reverse(index) => index,
         }
     }
 }
@@ -33,7 +32,7 @@ fn get_sequence_size(reader: &mut dyn Iterator<Item = Record>) -> usize {
 }
 
 /// Assigns a stable index to each nucleotide
-fn base_map(c: &u8) -> Option<usize> {
+fn base_map(c: u8) -> Option<usize> {
     match c {
         b'A' => Some(0),
         b'C' => Some(1),
@@ -43,7 +42,7 @@ fn base_map(c: &u8) -> Option<usize> {
     }
 }
 
-/// Creates a 2D matrix of shape (seq_size, 4) where each row represents the positional
+/// Creates a 2D matrix of shape (`seq_size`, 4) where each row represents the positional
 /// index of the sequence and each column represents the number of observed nucleotides 
 /// at that position
 fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64>{
@@ -57,23 +56,17 @@ fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64>{
                     .seq()
                     .iter()
                     .enumerate()
-                    .map(|(idx, c)| (idx, base_map(c)))
+                    .map(|(idx, c)| (idx, base_map(*c)))
                     .for_each(|(idx, jdx)| {
-                        match jdx {
-                            
+                        if let Some(j) = jdx {
                             // increment the nucleotide index and at the position
-                            Some(j) => {
-                                posmat[[idx, j]] += 1.
-                            },
-
-                            // increment each nucleotide index if an `N` is found (as it could be
-                            // anything)
-                            None => {
-                                posmat[[idx, 0]] += 1.;
-                                posmat[[idx, 1]] += 1.;
-                                posmat[[idx, 2]] += 1.;
-                                posmat[[idx, 3]] += 1.;
-                            }
+                            posmat[[idx, j]] += 1.;
+                        } else {
+                            // increment each nucleotide index if an `N` is found (as it could be anything)
+                            posmat[[idx, 0]] += 1.;
+                            posmat[[idx, 1]] += 1.;
+                            posmat[[idx, 2]] += 1.;
+                            posmat[[idx, 3]] += 1.;
                         };
                     });
                 posmat
@@ -125,8 +118,8 @@ fn windowed_mse(
 }
 
 fn assign_offset(
-        mse_forward: Array1<f64>, 
-        mse_reverse: Array1<f64>) -> Offset
+        mse_forward: &Array1<f64>, 
+        mse_reverse: &Array1<f64>) -> Offset
 {
     let argmin_forward = match mse_forward.argmin() {
         Ok(m) => m,
@@ -148,13 +141,12 @@ fn assign_offset(
         Err(why) => panic!("Unexpected minmax error in entropy: {}", why)
     };
 
-    match min_forward < min_reverse {
-        
+    if min_forward < min_reverse {
         // Reads are in forward directionality
-        true => Offset::Forward(argmin_forward),
-
+        Offset::Forward(argmin_forward)
+    } else {
         // Reads are in reverse directionality
-        false => Offset::Reverse(argmin_reverse)
+        Offset::Reverse(argmin_reverse)
     }
 }
 
@@ -164,10 +156,10 @@ fn minimize_mse(reference: &Array1<f64>, comparison: &Array1<f64>) -> Offset {
     assert!(size > 0);
     let rev_comparison = comparison.iter().rev().copied().collect();
 
-    let mse_forward = windowed_mse(&reference, &comparison);
-    let mse_reverse = windowed_mse(&reference, &rev_comparison);
+    let mse_forward = windowed_mse(reference, comparison);
+    let mse_reverse = windowed_mse(reference, &rev_comparison);
 
-    assign_offset(mse_forward, mse_reverse)
+    assign_offset(&mse_forward, &mse_reverse)
 }
 
 /// Calculates the Offset in the Comparison by Minimizing
@@ -195,13 +187,13 @@ pub fn entropy_offset_group(
         input_paths: &[String],
         subsample: usize) -> Result<Vec<Offset>>
 {
-    let mut reference = initialize_reader(&library_path)?;
+    let mut reference = initialize_reader(library_path)?;
     let reference_entropy = positional_entropy(&mut reference);
     let result: Vec<Offset> = input_paths
         .iter()
         .map(|x| 
             initialize_reader(x)
-                .expect(&format!("Unable to open file: {}", x))
+                .unwrap_or_else(|_| panic!("Unable to open file: {}", x))
                 .take(subsample))
         .map(|mut x| positional_entropy(&mut x))
         .map(|x| minimize_mse(&reference_entropy, &x))

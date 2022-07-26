@@ -15,7 +15,7 @@ impl Counter {
     /// Initializes counting of reads from the [`FastxRead`] object within
     /// the [`Library`]. Optional argument for the unambiguous sequence permutations
     /// contained within [`Permuter`].
-    pub fn new(
+    #[must_use] pub fn new(
         reader: Box<dyn FastxRead<Item = Record>>,
         library: &Library,
         permuter: &Option<Permuter>,
@@ -28,7 +28,7 @@ impl Counter {
 
     /// Publically exposes the results dictionary and returns either the observed count
     /// of a specific match or a zero if there were no matches.
-    pub fn get_value(&self, token: &[u8]) -> &usize {
+    #[must_use] pub fn get_value(&self, token: &[u8]) -> &usize {
         match self.results.get(token) {
             Some(c) => c,
             None => &0
@@ -109,7 +109,7 @@ impl Counter {
             .into_iter()
             .filter_map(|x| Self::assign(&x, library, permuter, offset, size))
             .fold(HashMap::new(), |mut accum, x| {
-                *accum.entry(x.to_owned()).or_insert(0) += 1;
+                *accum.entry(x.clone()).or_insert(0) += 1;
                 accum
             })
     }

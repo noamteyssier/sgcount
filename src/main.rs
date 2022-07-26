@@ -1,7 +1,7 @@
 //! sgcount
 //!
 //! # Summary
-//! This is a commandline tool to count the frequency of sgRNAs
+//! This is a commandline tool to count the frequency of `sgRNAs`
 //! in a group of provided sequencing files. It is meant to replace
 //! methods of exact sequence matching without sacrificing speed and
 //! replace costly alignment scripts using bwa or bowtie to align to
@@ -41,7 +41,7 @@ use offsetter::entropy_offset_group;
 pub use permutes::Permuter;
 pub use offsetter::{Offset, entropy_offset};
 pub use count::count;
-use progress::*;
+use progress::{finish_progress_bar, initialize_progress_bar, start_progress_bar};
 
 
 #[derive(Parser, Debug)]
@@ -115,10 +115,7 @@ fn calculate_offset(
         quiet: bool) -> Result<Vec<Offset>> { 
 
     let subsample = subsample.unwrap_or(5000);
-    let pb = match quiet {
-        true => None,
-        false => Some(initialize_progress_bar())
-    };
+    let pb = if quiet { None } else { Some(initialize_progress_bar()) };
     start_progress_bar(&pb, "Calculating Offset".to_string());
     let offset = entropy_offset_group(library_path, input_paths, subsample)?;
     finish_progress_bar(&pb, format!("Calculated Offsets: {:?}", offset));
@@ -127,14 +124,9 @@ fn calculate_offset(
 
 /// Validate Paths Exist
 fn validate_paths(input_paths: &[String]) {
-    input_paths
-        .iter()
-        .for_each(|x| {
-            match Path::new(x).exists() {
-                true => {},
-                false => panic!("Provided filepath does not exist: {}", x)
-            }
-        })
+    for x in input_paths.iter() {
+        if !Path::new(x).exists() { assert!(Path::new(x).exists(), "Provided filepath does not exist: {}", x); }
+    };
 }
 
 
@@ -148,26 +140,21 @@ fn main() -> Result<()> {
 
     // generates sample names if required
     let sample_names = match args.sample_names {
-        Some(s) => if s.len() != args.input_paths.len() { 
-                panic!("Must provide as many sample names as there are input files") 
-            } else { s },
+        Some(s) => if s.len() == args.input_paths.len() { s } else { panic!("Must provide as many sample names as there are input files") },
         None => generate_sample_names(&args.input_paths)
     };
 
     // calculates offset if required
     let offset = match args.offset {
-        Some(o) => match args.reverse {
-            true => vec![Offset::Reverse(o); args.input_paths.len()],
-            false => vec![Offset::Forward(o); args.input_paths.len()]
-        },
+        Some(o) => if args.reverse { vec![Offset::Reverse(o); args.input_paths.len()] } else { vec![Offset::Forward(o); args.input_paths.len()] },
         None => calculate_offset(&args.library_path, &args.input_paths, args.subsample, args.quiet)?
     };
 
     // perform counting
     count(
-        args.library_path,
+        &args.library_path,
         args.input_paths,
-        sample_names,
+        &sample_names,
         args.output_path,
         offset,
         args.mismatch,

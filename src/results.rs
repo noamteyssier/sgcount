@@ -6,7 +6,7 @@ use std::{fs::File, io::Write, fmt::Write as fmtWrite};
 /// Writes the results dataframe to the provided path
 fn write_to_path(
         path: &str, iterable: impl Iterator<Item = String>, 
-        columns: String) -> Result<()>
+        columns: &str) -> Result<()>
 {
     let mut file = File::create(path)?;
     writeln!(file, "{}", columns)?;
@@ -20,12 +20,11 @@ fn write_to_path(
 /// Writes the results dataframe to stdout
 fn write_to_stdout(
         iterable: impl Iterator<Item = String>, 
-        columns: String) -> Result<()> 
+        columns: &str) 
 {
     println!("{columns}");
     iterable
         .for_each(|x| println!("{x}"));
-    Ok(())
 }
 
 /// Creates a Tab Delim String from a List of Names
@@ -57,7 +56,7 @@ pub fn write_results(
             results
                 .iter()
                 .fold(
-                    String::from_utf8(alias.to_vec()).expect("invalid utf8"),
+                    String::from_utf8(alias.clone()).expect("invalid utf8"),
                     |mut accum, x| {
                     write!(accum, "\t{}", x.get_value(alias)).expect("unable to write to string");
                     accum
@@ -66,8 +65,10 @@ pub fn write_results(
 
     let columns = generate_columns(names);
 
-    match path {
-        Some(p) => write_to_path(&p, iterable, columns),
-        None => write_to_stdout(iterable, columns)
+    if let Some(p) = path {
+        write_to_path(&p, iterable, &columns)
+    } else {
+        write_to_stdout(iterable, &columns);
+        Ok(())
     }
 }
