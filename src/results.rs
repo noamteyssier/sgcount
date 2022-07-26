@@ -30,7 +30,7 @@ fn write_to_stdout(
 
 /// Creates a Tab Delim String from a List of Names
 fn generate_columns(
-        names: &Vec<String>) -> String 
+        names: &[String]) -> String 
 {
     names
         .iter()
@@ -46,9 +46,9 @@ fn generate_columns(
 /// or to stdout
 pub fn write_results(
         path: Option<String>, 
-        results: &Vec<Counter>,
+        results: &[Counter],
         library: &Library,
-        names: &Vec<String>) -> Result<()> 
+        names: &[String]) -> Result<()> 
 {
 
     let iterable = library
