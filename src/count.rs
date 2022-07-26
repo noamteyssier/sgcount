@@ -3,7 +3,7 @@ use fxread::initialize_reader;
 use rayon::prelude::*;
 use indicatif::ProgressBar;
 use std::thread;
-use crate::{Permuter, Counter, Library, Offset};
+use crate::{Permuter, Counter, Library, Offset, GeneMap};
 use crate::results::write_results;
 use crate::progress::{finish_progress_bar, finish_progress_bar_ref, initialize_multi_progress, initialize_progress_bar, start_progress_bar, start_progress_bar_ref};
 
@@ -47,6 +47,7 @@ pub fn count(
     output_path: Option<String>,
     offset: Vec<Offset>,
     mismatch: bool,
+    genemap: &Option<GeneMap>,
     quiet: bool) -> Result<()> {
 
 
@@ -54,6 +55,11 @@ pub fn count(
     let library = Library::from_reader(
         initialize_reader(library_path)?
         )?;
+
+    // validate all library sgRNA aliases exist if genemap provided
+    if let Some(g) = genemap {
+        if !g.validate_library(&library) { panic!("Missing sgRNAs in gene map") }
+    }
 
     // generate permuter if necessary
     let permuter = if mismatch { Some(generate_permutations(&library, quiet)) } else { None };
@@ -86,7 +92,7 @@ pub fn count(
     // join multiprogress if not quiet
     if let Some(m) = mp { m.join().unwrap()? };
 
-    write_results(output_path, &results?, &library, sample_names)?;
+    write_results(output_path, &results?, &library, sample_names, genemap)?;
 
     Ok(())
 }
