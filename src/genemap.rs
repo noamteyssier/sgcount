@@ -2,6 +2,7 @@ use std::{path::Path, fs::File, io::BufReader};
 use hashbrown::HashMap;
 use bstr::{io::BufReadExt, ByteSlice};
 use anyhow::{anyhow, Result};
+use crate::Library;
 
 /// Container to handle mapping of gene identifiers and
 /// `sgRNA` identifiers
@@ -47,5 +48,13 @@ impl GeneMap {
     /// Gets the associated gene for a provided `sgRNA`
     #[must_use] pub fn get(&self, sgrna: &[u8]) -> Option<&Vec<u8>> {
         self.map.get(sgrna)
+    }
+
+    /// Validates that all aliases found within the library have an
+    /// associated gene within this gene map
+    pub fn validate_library(&self, library: &Library) -> bool {
+        library
+            .values()
+            .all(|alias| self.get(alias).is_some())
     }
 }
