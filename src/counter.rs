@@ -8,7 +8,7 @@ use super::{Library, Permuter};
 /// and the sequences found in the [`Library`]. It also has an optional argument for
 /// unambiguous sequence permutations contained within [`Permuter`]. 
 pub struct Counter {
-    results: HashMap<String, usize>
+    results: HashMap<Vec<u8>, usize>
 }
 impl Counter {
     
@@ -28,7 +28,7 @@ impl Counter {
 
     /// Publically exposes the results dictionary and returns either the observed count
     /// of a specific match or a zero if there were no matches.
-    pub fn get_value(&self, token: &str) -> &usize {
+    pub fn get_value(&self, token: &[u8]) -> &usize {
         match self.results.get(token) {
             Some(c) => c,
             None => &0
@@ -36,14 +36,14 @@ impl Counter {
     }
 
     /// Assignment process against the [`Library`].
-    fn check_library<'a>(token: &str, library: &'a Library) -> Option<&'a String> {
+    fn check_library<'a>(token: &[u8], library: &'a Library) -> Option<&'a Vec<u8>> {
         library.contains(token)
     }
 
 
     /// Assignment process against the [`Permuter`]. This will only execute if the [`Permuter`] is
     /// optionally not [`None`].
-    fn check_permuter<'a>(token: &str, permuter: &'a Option<Permuter>) -> Option<&'a String> {
+    fn check_permuter<'a>(token: &[u8], permuter: &'a Option<Permuter>) -> Option<&'a Vec<u8>> {
         match permuter {
             Some(p) => p.contains(token),
             None => None
@@ -59,7 +59,7 @@ impl Counter {
             library: &'a Library, 
             permuter: &Option<Permuter>,
             offset: Offset,
-            size: usize) -> Option<&'a String> 
+            size: usize) -> Option<&'a Vec<u8>> 
     {
         //let token = Self::trim_sequence(&record, offset, size);
         let token = match offset {
@@ -78,30 +78,19 @@ impl Counter {
     fn trim_forward_sequence(
             record: &Record,
             offset: usize,
-            size: usize) -> &str 
+            size: usize) -> &[u8] 
     {
-        let seq = std::str::from_utf8(&record
-            .seq()
-            .as_bytes()[offset..offset+size]);
-        match seq {
-            Ok(s) => s,
-            Err(why) => panic!("{}", why)
-        }
+        &record.seq()[offset..offset+size]
     }
 
     fn trim_reverse_sequence(
             record: &Record,
             offset: usize,
-            size: usize) -> String 
+            size: usize) -> Vec<u8> 
     {
-        let seq = String::from_utf8(record
-            .seq_rev_comp().expect(&format!("Unexpected nucleotides found in {:?}", record))
-            .as_bytes()[offset..offset+size]
-            .to_vec());
-        match seq {
-            Ok(s) => s,
-            Err(why) => panic!("{}", why)
-        }
+        record
+            .seq_rev_comp()[offset..offset+size]
+            .to_vec()
     }
 
     /// Main functionality of the struct. Performs the counting operation.
@@ -114,13 +103,13 @@ impl Counter {
             library: &Library, 
             permuter: &Option<Permuter>,
             offset: Offset,
-            size: usize) -> HashMap<String, usize> 
+            size: usize) -> HashMap<Vec<u8>, usize> 
     {
        reader 
             .into_iter()
             .filter_map(|x| Self::assign(&x, library, permuter, offset, size))
             .fold(HashMap::new(), |mut accum, x| {
-                *accum.entry(x.to_string()).or_insert(0) += 1;
+                *accum.entry(x.to_owned()).or_insert(0) += 1;
                 accum
             })
     }
@@ -159,7 +148,7 @@ mod test {
         let trimmer = trim_reader(false);
         let library = library();
         let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4);
-        assert_eq!(*count.get_value("seq.0"), 1);
+        assert_eq!(*count.get_value(b"seq.0"), 1);
     }
 
     #[test]
@@ -167,7 +156,7 @@ mod test {
         let trimmer = trim_reader(true);
         let library = library();
         let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4);
-        assert_eq!(*count.get_value("seq.0"), 0);
+        assert_eq!(*count.get_value(b"seq.0"), 0);
     }
 
     #[test]
@@ -175,7 +164,7 @@ mod test {
         let trimmer = trim_reader(true);
         let library = library();
         let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4);
-        assert_eq!(*count.get_value("seq.0"), 0);
+        assert_eq!(*count.get_value(b"seq.0"), 0);
     }
 
     #[test]
@@ -184,6 +173,6 @@ mod test {
         let library = library();
         let permuter = permuter();
         let count = Counter::new(trimmer, &library, &Some(permuter), Offset::Forward(0), 4);
-        assert_eq!(*count.get_value("seq.0"), 1);
+        assert_eq!(*count.get_value(b"seq.0"), 1);
     }
 }

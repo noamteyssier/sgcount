@@ -33,12 +33,12 @@ fn get_sequence_size(reader: &mut dyn Iterator<Item = Record>) -> usize {
 }
 
 /// Assigns a stable index to each nucleotide
-fn base_map(c: char) -> Option<usize> {
+fn base_map(c: &u8) -> Option<usize> {
     match c {
-        'A' => Some(0),
-        'C' => Some(1),
-        'G' => Some(2),
-        'T' => Some(3),
+        b'A' => Some(0),
+        b'C' => Some(1),
+        b'G' => Some(2),
+        b'T' => Some(3),
         _ => None
     }
 }
@@ -55,7 +55,8 @@ fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64>{
             |mut posmat, record| {
                 record
                     .seq()
-                    .char_indices()
+                    .iter()
+                    .enumerate()
                     .map(|(idx, c)| (idx, base_map(c)))
                     .for_each(|(idx, jdx)| {
                         match jdx {
