@@ -130,7 +130,7 @@ fn validate_paths(input_paths: &[String]) {
     input_paths
         .iter()
         .for_each(|x| {
-            if !Path::new(x).exists() { panic!("Provided filepath does not exist: {}", x) }
+            if !Path::new(x).exists() { assert!(Path::new(x).exists(), "Provided filepath does not exist: {}", x); }
         })
 }
 
