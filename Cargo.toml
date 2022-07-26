@@ -2,6 +2,12 @@
 name = "sgcount"
 version = "0.1.17"
 edition = "2021"
+description = "A fast and flexible sgRNA counter"
+license = "MIT"
+documentation = "https://docs.rs/sgcount"
+repository = "https://github.com/noamteyssier/sgcount"
+keywords = ["cli", "CRISPR", "bioinformatics", "sequencing", "sgRNA"]
+categories = ["command-line-utilities", "science"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
