@@ -56,6 +56,11 @@ pub fn count(
         initialize_reader(library_path)?
         )?;
 
+    // validate all library sgRNA aliases exist if genemap provided
+    if let Some(g) = genemap {
+        if !g.validate_library(&library) { panic!("Missing sgRNAs in gene map") }
+    }
+
     // generate permuter if necessary
     let permuter = if mismatch { Some(generate_permutations(&library, quiet)) } else { None };
 
