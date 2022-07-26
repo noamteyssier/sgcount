@@ -48,6 +48,21 @@ provided samples (the program will quit otherwise).
 sgcount -l <path_to_library> -i <path_to_sequencing_a> <path_to_sequencing_b> -n <name_a> <name_b>
 ```
 
+### Providing a Gene -> sgRNA Mapping
+If you would like to associate each sgRNA with its parent gene you can
+provide that mapping with the `-g` flag.
+This will expect a two column tab-delim file.
+The first column will be the gene, and the second will be the sgRNA name (not sequence).
+This will be validated against the library - and any sgRNAs that cannot be mapped against
+this table in the library will cause the program to quit. 
+
+If your library is fasta formatted and the gene is provided in the header you can generate
+this file easily using my tool `sgrna-table` within [fxtools](https://github.com/noamteyssier/fxtools).
+
+```bash
+sgcount -l <path_to_library> -i <path_to_sequencing> -g g2s.txt
+```
+
 ### Setting the Offset
 The program will automatically determine the offset if this flag is
 not provided.
@@ -62,12 +77,12 @@ then you can run the following:
 sgcount -l <path_to_library> -i <path_to_sequencing> -a 10
 ```
 
-### Allowing Mismatches
-By default sgcount will only allow for exact matches, but if you would
-like to allow a single mismatch you can specify it with the `-m` flag.
+### Disallowing Mismatches
+By default sgcount will allow single mismatches, but if you would
+like to have only exact matches you can specify it with the `-x` flag.
 
 ```bash
-sgcount -l <path_to_library> -i <path_to_sequencing> -m
+sgcount -l <path_to_library> -i <path_to_sequencing> -x
 ```
 
 ### Setting the Output File
