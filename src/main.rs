@@ -115,10 +115,7 @@ fn calculate_offset(
         quiet: bool) -> Result<Vec<Offset>> { 
 
     let subsample = subsample.unwrap_or(5000);
-    let pb = match quiet {
-        true => None,
-        false => Some(initialize_progress_bar())
-    };
+    let pb = if quiet { None } else { Some(initialize_progress_bar()) };
     start_progress_bar(&pb, "Calculating Offset".to_string());
     let offset = entropy_offset_group(library_path, input_paths, subsample)?;
     finish_progress_bar(&pb, format!("Calculated Offsets: {:?}", offset));
