@@ -98,7 +98,7 @@ impl Counter {
     /// library or the permutations. 
     /// Finally they are folded into a [`HashMap`] whose keys are the sequence
     /// alias within the library and the values the number of observed counts.
-    fn count<'a>(
+    fn count(
             reader: Box<dyn FastxRead<Item = Record>>, 
             library: &Library, 
             permuter: &Option<Permuter>,
