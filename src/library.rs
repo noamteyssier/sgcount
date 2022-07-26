@@ -24,10 +24,7 @@ impl Library {
     /// Publically exposes the internal [`HashMap`] and returns
     /// the optional value (AKA its sequence id/header) to a provided token. 
     #[must_use] pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
-        match self.table.contains_key(token) {
-            true => self.alias(token),
-            false => None
-        }
+        if self.table.contains_key(token) { self.alias(token) } else { None }
     }
 
     /// Returns the alias to a sequence (AKA its sequence id / header)
