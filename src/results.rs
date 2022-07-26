@@ -20,12 +20,11 @@ fn write_to_path(
 /// Writes the results dataframe to stdout
 fn write_to_stdout(
         iterable: impl Iterator<Item = String>, 
-        columns: String) -> Result<()> 
+        columns: String) 
 {
     println!("{columns}");
     iterable
         .for_each(|x| println!("{x}"));
-    Ok(())
 }
 
 /// Creates a Tab Delim String from a List of Names
@@ -68,6 +67,6 @@ pub fn write_results(
 
     match path {
         Some(p) => write_to_path(&p, iterable, columns),
-        None => write_to_stdout(iterable, columns)
+        None => {write_to_stdout(iterable, columns); Ok(())}
     }
 }
