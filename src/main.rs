@@ -1,7 +1,7 @@
 //! sgcount
 //!
 //! # Summary
-//! This is a commandline tool to count the frequency of sgRNAs
+//! This is a commandline tool to count the frequency of `sgRNAs`
 //! in a group of provided sequencing files. It is meant to replace
 //! methods of exact sequence matching without sacrificing speed and
 //! replace costly alignment scripts using bwa or bowtie to align to
@@ -41,7 +41,7 @@ use offsetter::entropy_offset_group;
 pub use permutes::Permuter;
 pub use offsetter::{Offset, entropy_offset};
 pub use count::count;
-use progress::*;
+use progress::{finish_progress_bar, initialize_progress_bar, start_progress_bar};
 
 
 #[derive(Parser, Debug)]
