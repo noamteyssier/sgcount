@@ -1,6 +1,6 @@
 use anyhow::Result;
 use super::{Counter, Library};
-use std::{fs::File, io::Write};
+use std::{fs::File, io::Write, fmt::Write as fmtWrite};
 
 
 /// Writes the results dataframe to the provided path
@@ -30,14 +30,14 @@ fn write_to_stdout(
 
 /// Creates a Tab Delim String from a List of Names
 fn generate_columns(
-        names: &Vec<String>) -> String 
+        names: &[String]) -> String 
 {
     names
         .iter()
         .fold(
             String::from("Guide"),
             |mut s, x| {
-            s += &format!("\t{}", x);
+            write!(s, "\t{}", x).expect("unable to write to string");
             s
         })
 }
@@ -46,9 +46,9 @@ fn generate_columns(
 /// or to stdout
 pub fn write_results(
         path: Option<String>, 
-        results: &Vec<Counter>,
+        results: &[Counter],
         library: &Library,
-        names: &Vec<String>) -> Result<()> 
+        names: &[String]) -> Result<()> 
 {
 
     let iterable = library
@@ -59,7 +59,7 @@ pub fn write_results(
                 .fold(
                     String::from_utf8(alias.to_vec()).expect("invalid utf8"),
                     |mut accum, x| {
-                    accum += &format!("\t{}", x.get_value(alias));
+                    write!(accum, "\t{}", x.get_value(alias)).expect("unable to write to string");
                     accum
                 })
         });

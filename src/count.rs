@@ -10,8 +10,8 @@ use crate::progress::*;
 /// Counts the number of matching sgRNA-Reads for a provided
 /// filepath
 fn count_sample(
-        path: &String,
-        name: &String,
+        path: &str,
+        name: &str,
         offset: Offset,
         library: &Library,
         permuter: &Option<Permuter>,
@@ -19,7 +19,7 @@ fn count_sample(
 
     let reader = initialize_reader(path)?;
     start_progress_bar_ref(&pb, format!("Processing: {}", name));
-    let counter = Counter::new(reader, &library, &permuter, offset, library.size());
+    let counter = Counter::new(reader, library, permuter, offset, library.size());
     finish_progress_bar_ref(&pb, format!("Finished: {}", name));
 
     Ok(counter)
@@ -71,10 +71,7 @@ pub fn count(
     };
     
     // start multiprogress if not quiet
-    let mp = match mp {
-        Some(m) => Some(thread::spawn(move || m.join())),
-        None => None
-    };
+    let mp = mp.map(|m| thread::spawn(move || m.join()));
 
     // main counting function
     let results: Result<Vec<Counter>> = input_paths
@@ -84,7 +81,7 @@ pub fn count(
         .map(|(idx, (path, name))| 
             count_sample(
                 &path, 
-                &name, 
+                name, 
                 offset, 
                 &library, 
                 &permuter, 
@@ -95,10 +92,7 @@ pub fn count(
         .collect();
 
     // join multiprogress if not quiet
-    match mp {
-        Some(m) => m.join().unwrap()?,
-        None => {}
-    };
+    if let Some(m) = mp { m.join().unwrap()? };
 
     write_results(output_path, &results?, &library, &sample_names)?;
 

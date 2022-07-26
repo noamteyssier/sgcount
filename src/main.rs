@@ -68,7 +68,7 @@ struct Args {
     offset: Option<usize>,
 
     /// Read Direction (reverse complement reads)
-    #[clap(short='a', long)]
+    #[clap(short='r', long)]
     reverse: bool,
 
     /// Allow One Off Mismatch
@@ -98,7 +98,7 @@ fn set_threads(threads: usize) {
 
 /// Generates default sample names
 fn generate_sample_names(
-        input_paths: &Vec<String>) -> Vec<String> {
+        input_paths: &[String]) -> Vec<String> {
     input_paths
         .iter()
         .enumerate()
@@ -108,15 +108,12 @@ fn generate_sample_names(
 
 /// Calculates Offset if Required
 fn calculate_offset(
-        library_path: &String,
-        input_paths: &Vec<String>,
+        library_path: &str,
+        input_paths: &[String],
         subsample: Option<usize>,
         quiet: bool) -> Result<Offset> { 
 
-    let subsample = match subsample{
-        Some(n) => n,
-        None => 5000
-    };
+    let subsample = subsample.unwrap_or(5000);
     let pb = match quiet {
         true => None,
         false => Some(initialize_progress_bar())
@@ -128,7 +125,7 @@ fn calculate_offset(
 }
 
 /// Validate Paths Exist
-fn validate_paths(input_paths: &Vec<String>) {
+fn validate_paths(input_paths: &[String]) {
     input_paths
         .iter()
         .for_each(|x| {
