@@ -30,10 +30,7 @@ fn generate_permutations(
         library: &Library,
         quiet: bool) -> Permuter {
 
-    let pb = match quiet {
-        true => None,
-        false => Some(initialize_progress_bar())
-    };
+    let pb = if quiet { None } else { Some(initialize_progress_bar()) };
 
     start_progress_bar(&pb, "Generating Mismatch Library".to_string());
     let permuter = Permuter::new(library.keys());
