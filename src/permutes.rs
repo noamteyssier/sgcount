@@ -146,9 +146,10 @@ impl Permuter {
         }
 
         if !null.contains(permutation) {
-            match table.contains_key(permutation) {
-                true => Self::insert_to_null(permutation, null, table),
-                false => Self::insert_to_table(permutation, sequence, table)
+            if table.contains_key(permutation) {
+                Self::insert_to_null(permutation, null, table);
+            } else {
+                Self::insert_to_table(permutation, sequence, table);
             }
         }
     }
