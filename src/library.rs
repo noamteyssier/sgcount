@@ -48,8 +48,9 @@ impl Library {
     }
 
     /// Validates that all sequences are of equivalent length
-    fn validate_unique_size(keys: Vec<&Vec<u8>>) -> bool {
+    fn validate_unique_size<'a>(keys: impl Iterator<Item = &'a Vec<u8>>) -> bool {
         keys
+            .collect::<Vec<&Vec<u8>>>()
             .windows(2)
             .map(|x| (x[0], x[1]))
             .all(|(x, y)| x.len() == y.len())
@@ -63,7 +64,7 @@ impl Library {
     /// Validates that all sequences are of equivalent length and returns
     /// that length
     fn calculate_base_size(table: &HashMap<Vec<u8>, Vec<u8>>) -> Result<usize> {
-        if Self::validate_unique_size(table.keys().collect()) {
+        if Self::validate_unique_size(table.keys()) {
             Ok(Self::get_key_size(table))
         } else {
             Err(anyhow::anyhow!("Library sequence sizes are inconsistent"))
