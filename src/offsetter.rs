@@ -119,7 +119,7 @@ fn windowed_mse(
         .fold(
             Array1::<f64>::zeros(size), 
             |mut arr, (x, y)| {
-                arr[x] += array1.mean_sq_err(&slice_array(&array2, x, y)).expect("unexpected error");
+                arr[x] += array1.mean_sq_err(&slice_array(array2, x, y)).expect("unexpected error");
                 arr
             })
 }
@@ -162,7 +162,7 @@ fn assign_offset(
 fn minimize_mse(reference: Array1<f64>, comparison: Array1<f64>) -> Offset {
     let size = comparison.len() - reference.len() + 1;
     assert!(size > 0);
-    let rev_comparison = comparison.iter().rev().map(|x| x.clone()).collect();
+    let rev_comparison = comparison.iter().rev().map(|x| *x).collect();
 
     let mse_forward = windowed_mse(&reference, &comparison);
     let mse_reverse = windowed_mse(&reference, &rev_comparison);
@@ -173,11 +173,11 @@ fn minimize_mse(reference: Array1<f64>, comparison: Array1<f64>) -> Offset {
 /// Calculates the Offset in the Comparison by Minimizing
 /// the MSE of Positional Entropy Observed in the Reference.
 pub fn entropy_offset(
-        library_path: &String,
-        input_paths: &Vec<String>,
+        library_path: &str,
+        input_paths: &[String],
         subsample: usize) -> Result<Offset> {
 
-    let mut reference = initialize_reader(&library_path)?;
+    let mut reference = initialize_reader(library_path)?;
     let mut comparison = initialize_reader(&input_paths[0])?.take(subsample);
 
     let reference_entropy = positional_entropy(&mut reference);
