@@ -64,6 +64,10 @@ struct Args {
     #[clap(short, long, value_parser)]
     output_path: Option<String>,
 
+    /// Gene to sgRNA mapping
+    #[clap(short, long, value_parser)]
+    g2s: Option<String>,
+
     /// Adapter Offset
     #[clap(short='a', long, value_parser)]
     offset: Option<usize>,
