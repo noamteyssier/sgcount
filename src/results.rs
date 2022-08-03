@@ -35,10 +35,11 @@ fn generate_columns(
 {
     names
         .iter()
+        .enumerate()
         .fold(
             String::from("Guide"),
-            |mut s, x| {
-            if genemap.is_some() {
+            |mut s, (idx, x)| {
+            if idx == 0 && genemap.is_some() {
                 write!(s, "\tGene").expect("unable to write to string");
             }
             write!(s, "\t{}", x).expect("unable to write to string");
@@ -50,8 +51,10 @@ fn generate_columns(
 fn append_gene(
     alias: &[u8],
     genemap: &Option<GeneMap>,
+    idx: usize,
     accum: &mut String) 
 {
+    if idx > 0 { return }
     if let Some(g) = genemap {
         if let Some(gene) = g.get(alias) {
             write!(
@@ -93,10 +96,11 @@ pub fn write_results(
         .map(|alias| {
             results
                 .iter()
+                .enumerate()
                 .fold(
                     String::from_utf8(alias.clone()).expect("invalid utf8"),
-                    |mut accum, x| {
-                    append_gene(alias, genemap, &mut accum);
+                    |mut accum, (idx, x)| {
+                    append_gene(alias, genemap, idx, &mut accum);
                     append_count(alias, x, &mut accum);
                     accum
                 })
