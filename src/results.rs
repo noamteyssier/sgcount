@@ -1,30 +1,31 @@
 use anyhow::Result;
 use crate::{Counter, Library, GeneMap};
-use std::{fs::File, io::Write, fmt::Write as fmtWrite};
+use std::{fs::File, io::{Write, stdout}, fmt::Write as fmtWrite};
 
 
-/// Writes the results dataframe to the provided path
-fn write_to_path(
-        path: &str, iterable: impl Iterator<Item = String>, 
-        columns: &str) -> Result<()>
+/// Writes the results to stdout / path
+fn write(
+    path: Option<String>,
+    iterable: impl Iterator<Item = String>,
+    columns: &str
+    ) -> Result<()>
 {
-    let mut file = File::create(path)?;
-    writeln!(file, "{}", columns)?;
+    let mut writer = match_output(path)?;
+    writeln!(writer, "{}", columns)?;
     iterable
         .for_each(|x| {
-            writeln!(file, "{}", x).expect("IO error in results");
+            writeln!(writer, "{}", x).expect("IO error in results");
         });
     Ok(())
 }
 
-/// Writes the results dataframe to stdout
-fn write_to_stdout(
-        iterable: impl Iterator<Item = String>, 
-        columns: &str) 
+/// Assigns the writer to stdout or to a path
+fn match_output(path: Option<String>) -> Result<Box<dyn Write>>
 {
-    println!("{columns}");
-    iterable
-        .for_each(|x| println!("{x}"));
+    match path {
+        Some(p) => Ok(Box::new(File::create(p)?)),
+        None => Ok(Box::new(stdout()))
+    }
 }
 
 /// Creates a Tab Delim String from a List of Names
@@ -34,10 +35,11 @@ fn generate_columns(
 {
     names
         .iter()
+        .enumerate()
         .fold(
             String::from("Guide"),
-            |mut s, x| {
-            if genemap.is_some() {
+            |mut s, (idx, x)| {
+            if idx == 0 && genemap.is_some() {
                 write!(s, "\tGene").expect("unable to write to string");
             }
             write!(s, "\t{}", x).expect("unable to write to string");
@@ -49,8 +51,10 @@ fn generate_columns(
 fn append_gene(
     alias: &[u8],
     genemap: &Option<GeneMap>,
+    idx: usize,
     accum: &mut String) 
 {
+    if idx > 0 { return }
     if let Some(g) = genemap {
         if let Some(gene) = g.get(alias) {
             write!(
@@ -92,21 +96,16 @@ pub fn write_results(
         .map(|alias| {
             results
                 .iter()
+                .enumerate()
                 .fold(
                     String::from_utf8(alias.clone()).expect("invalid utf8"),
-                    |mut accum, x| {
-                    append_gene(alias, genemap, &mut accum);
+                    |mut accum, (idx, x)| {
+                    append_gene(alias, genemap, idx, &mut accum);
                     append_count(alias, x, &mut accum);
                     accum
                 })
         });
 
     let columns = generate_columns(names, genemap);
-
-    if let Some(p) = path {
-        write_to_path(&p, iterable, &columns)
-    } else {
-        write_to_stdout(iterable, &columns);
-        Ok(())
-    }
+    write(path, iterable, &columns)
 }
