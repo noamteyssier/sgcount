@@ -1,30 +1,31 @@
 use anyhow::Result;
 use crate::{Counter, Library, GeneMap};
-use std::{fs::File, io::Write, fmt::Write as fmtWrite};
+use std::{fs::File, io::{Write, stdout}, fmt::Write as fmtWrite};
 
 
-/// Writes the results dataframe to the provided path
-fn write_to_path(
-        path: &str, iterable: impl Iterator<Item = String>, 
-        columns: &str) -> Result<()>
+/// Writes the results to stdout / path
+fn write(
+    path: Option<String>,
+    iterable: impl Iterator<Item = String>,
+    columns: &str
+    ) -> Result<()>
 {
-    let mut file = File::create(path)?;
-    writeln!(file, "{}", columns)?;
+    let mut writer = match_output(path)?;
+    writeln!(writer, "{}", columns)?;
     iterable
         .for_each(|x| {
-            writeln!(file, "{}", x).expect("IO error in results");
+            writeln!(writer, "{}", x).expect("IO error in results");
         });
     Ok(())
 }
 
-/// Writes the results dataframe to stdout
-fn write_to_stdout(
-        iterable: impl Iterator<Item = String>, 
-        columns: &str) 
+/// Assigns the writer to stdout or to a path
+fn match_output(path: Option<String>) -> Result<Box<dyn Write>>
 {
-    println!("{columns}");
-    iterable
-        .for_each(|x| println!("{x}"));
+    match path {
+        Some(p) => Ok(Box::new(File::create(p)?)),
+        None => Ok(Box::new(stdout()))
+    }
 }
 
 /// Creates a Tab Delim String from a List of Names
@@ -102,11 +103,5 @@ pub fn write_results(
         });
 
     let columns = generate_columns(names, genemap);
-
-    if let Some(p) = path {
-        write_to_path(&p, iterable, &columns)
-    } else {
-        write_to_stdout(iterable, &columns);
-        Ok(())
-    }
+    write(path, iterable, &columns)
 }
