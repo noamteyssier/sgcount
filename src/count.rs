@@ -64,9 +64,9 @@ pub fn count(
     }
 
     // generate permuter if necessary
-    let permuter = if !exact { 
-        Some(generate_permutations(&library, quiet)) 
-    } else { None };
+    let permuter = if exact { None } else { 
+        Some(generate_permutations(&library, quiet))
+    };
 
     // generate multiprogress and individual progress bars
     let (mp, progress_bars) = if quiet { (None, None) } else { initialize_multi_progress(sample_names) };
