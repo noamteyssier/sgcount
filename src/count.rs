@@ -60,7 +60,7 @@ pub fn count(
 
     // validate all library sgRNA aliases exist if genemap provided
     if let Some(g) = genemap {
-        if !g.validate_library(&library) { panic!("Missing sgRNAs in gene map") }
+        assert!(g.validate_library(&library), "Missing sgRNAs in gene map");
     }
 
     // generate permuter if necessary
