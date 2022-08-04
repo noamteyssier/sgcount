@@ -15,11 +15,12 @@ fn count_sample(
         offset: Offset,
         library: &Library,
         permuter: &Option<Permuter>,
+        position_recursion: bool,
         pb: Option<&ProgressBar>) -> Result<Counter> {
 
     let reader = initialize_reader(path)?;
     start_progress_bar_ref(pb, format!("Processing: {}", name));
-    let counter = Counter::new(reader, library, permuter, offset, library.size());
+    let counter = Counter::new(reader, library, permuter, offset, library.size(), position_recursion);
     finish_progress_bar_ref(pb, format!("Finished: {}", name));
 
     Ok(counter)
@@ -48,6 +49,7 @@ pub fn count(
     offset: Vec<Offset>,
     exact : bool,
     genemap: &Option<GeneMap>,
+    position_recursion: bool,
     quiet: bool) -> Result<()> {
 
 
@@ -58,13 +60,13 @@ pub fn count(
 
     // validate all library sgRNA aliases exist if genemap provided
     if let Some(g) = genemap {
-        if !g.validate_library(&library) { panic!("Missing sgRNAs in gene map") }
+        assert!(g.validate_library(&library), "Missing sgRNAs in gene map");
     }
 
     // generate permuter if necessary
-    let permuter = if !exact { 
-        Some(generate_permutations(&library, quiet)) 
-    } else { None };
+    let permuter = if exact { None } else { 
+        Some(generate_permutations(&library, quiet))
+    };
 
     // generate multiprogress and individual progress bars
     let (mp, progress_bars) = if quiet { (None, None) } else { initialize_multi_progress(sample_names) };
@@ -85,6 +87,7 @@ pub fn count(
                 offset, 
                 &library, 
                 &permuter, 
+                position_recursion,
                 match &progress_bars {
                     Some(pbs) => Some(&pbs[idx]),
                     None => None
