@@ -8,6 +8,7 @@ enum Position
 {
     Plus,
     Minus,
+    Centered,
     Null
 }
 
@@ -27,9 +28,11 @@ impl Counter {
         library: &Library,
         permuter: &Option<Permuter>,
         offset: Offset,
-        size: usize) -> Self {
-
-        let results = Self::count(reader, library, permuter, offset, size);
+        size: usize,
+        position_recursion: bool) -> Self 
+    {
+        let position = if position_recursion { Position::Centered } else { Position::Null };
+        let results = Self::count(reader, library, permuter, offset, size, &position);
         Self { results }
     }
 
@@ -67,7 +70,7 @@ impl Counter {
             permuter: &Option<Permuter>,
             offset: Offset,
             size: usize,
-            position: Position) -> Option<&'a Vec<u8>> 
+            position: &Position) -> Option<&'a Vec<u8>> 
     {
         // Apply Trimming to Record
         let token = match Self::apply_trim(record, offset, size, &position) {
@@ -88,13 +91,16 @@ impl Counter {
         if alias.is_none() {
             match position {
                 // Try offsetting +1
-                Position::Null => Self::assign(record, library, permuter, offset, size, Position::Plus),
+                Position::Centered => Self::assign(record, library, permuter, offset, size, &Position::Plus),
 
                 // Try offsetting -1
-                Position::Plus => Self::assign(record, library, permuter, offset, size, Position::Minus),
+                Position::Plus => Self::assign(record, library, permuter, offset, size, &Position::Minus),
 
                 // Both positions have been tried so return the null
-                Position::Minus => alias
+                Position::Minus => alias,
+
+                // Don't perform recursion
+                Position::Null => alias
             }
         }
         // Otherwise return the library alias
@@ -123,7 +129,6 @@ impl Counter {
         position: &Position) -> Option<(usize, usize)>
     {
         let (min, max) = match position {
-            Position::Null => (offset, offset+size),
             Position::Plus => (offset+1, offset+1+size),
             Position::Minus => {
                 let min = match offset.checked_sub(1) {
@@ -131,7 +136,8 @@ impl Counter {
                     None => return None
                 };
                 (min, min+size)
-            }
+            },
+            _ => (offset, offset+size),
         };
         Some((min, max))
     }
@@ -174,11 +180,12 @@ impl Counter {
             library: &Library, 
             permuter: &Option<Permuter>,
             offset: Offset,
-            size: usize) -> HashMap<Vec<u8>, usize> 
+            size: usize,
+            position: &Position) -> HashMap<Vec<u8>, usize> 
     {
        reader 
             .into_iter()
-            .filter_map(|x| Self::assign(&x, library, permuter, offset, size, Position::Null))
+            .filter_map(|x| Self::assign(&x, library, permuter, offset, size, position))
             .fold(HashMap::new(), |mut accum, x| {
                 *accum.entry(x.clone()).or_insert(0) += 1;
                 accum
@@ -218,7 +225,7 @@ mod test {
     fn count_no_distance_no_permute() {
         let trimmer = trim_reader(false);
         let library = library();
-        let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4);
+        let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4, false);
         assert_eq!(*count.get_value(b"seq.0"), 1);
     }
 
@@ -226,7 +233,7 @@ mod test {
     fn count_no_distance_with_permute() {
         let trimmer = trim_reader(true);
         let library = library();
-        let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4);
+        let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4, false);
         assert_eq!(*count.get_value(b"seq.0"), 0);
     }
 
@@ -234,7 +241,7 @@ mod test {
     fn count_with_distance_no_permute() {
         let trimmer = trim_reader(true);
         let library = library();
-        let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4);
+        let count = Counter::new(trimmer, &library, &None, Offset::Forward(0), 4, false);
         assert_eq!(*count.get_value(b"seq.0"), 0);
     }
 
@@ -243,7 +250,7 @@ mod test {
         let trimmer = trim_reader(true);
         let library = library();
         let permuter = permuter();
-        let count = Counter::new(trimmer, &library, &Some(permuter), Offset::Forward(0), 4);
+        let count = Counter::new(trimmer, &library, &Some(permuter), Offset::Forward(0), 4, false);
         assert_eq!(*count.get_value(b"seq.0"), 1);
     }
 }
