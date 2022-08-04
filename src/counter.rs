@@ -96,11 +96,8 @@ impl Counter {
                 // Try offsetting -1
                 Position::Plus => Self::assign(record, library, permuter, offset, size, &Position::Minus),
 
-                // Both positions have been tried so return the null
-                Position::Minus => alias,
-
-                // Don't perform recursion
-                Position::Null => alias
+                // Both positions have been tried or no recursion option so return the null
+                Position::Minus | Position::Null => alias,
             }
         }
         // Otherwise return the library alias
