@@ -76,6 +76,10 @@ struct Args {
     #[clap(short='a', long, value_parser)]
     offset: Option<usize>,
 
+    /// Remove Position Recursion (i.e. offseting sequences by +/- 1 on mismatch condition)
+    #[clap(short='p', long)]
+    no_position_recursion: bool,
+
     /// Read Direction (reverse complement reads)
     #[clap(short='r', long)]
     reverse: bool,
@@ -164,6 +168,9 @@ fn main() -> Result<()> {
         None => None
     };
 
+    // default position recursion is true; flag flips this bool
+    let position_recursion = !args.no_position_recursion;
+
     // perform counting
     count(
         &args.library_path,
@@ -173,6 +180,7 @@ fn main() -> Result<()> {
         offset,
         args.exact,
         &genemap,
+        position_recursion,
         args.quiet)?;
 
     Ok(())
