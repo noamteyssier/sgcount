@@ -52,7 +52,7 @@ impl GeneMap {
 
     /// Validates that all aliases found within the library have an
     /// associated gene within this gene map
-    pub fn validate_library(&self, library: &Library) -> bool {
+    #[must_use] pub fn validate_library(&self, library: &Library) -> bool {
         library
             .values()
             .all(|alias| self.get(alias).is_some())
