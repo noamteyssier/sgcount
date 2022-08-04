@@ -73,7 +73,7 @@ impl Counter {
             position: &Position) -> Option<&'a Vec<u8>> 
     {
         // Apply Trimming to Record
-        let token = match Self::apply_trim(record, offset, size, &position) {
+        let token = match Self::apply_trim(record, offset, size, position) {
             Some(t) => t,
             None => return None
         };
@@ -116,8 +116,8 @@ impl Counter {
         position: &Position) -> Option<Vec<u8>>
     {
         match offset {
-            Offset::Forward(index) => Self::trim_forward_sequence(record, index, size, &position),
-            Offset::Reverse(index) => Self::trim_reverse_sequence(record, index, size, &position),
+            Offset::Forward(index) => Self::trim_forward_sequence(record, index, size, position),
+            Offset::Reverse(index) => Self::trim_reverse_sequence(record, index, size, position),
         }
     }
 
@@ -150,10 +150,7 @@ impl Counter {
             size: usize,
             position: &Position) -> Option<Vec<u8>>
     {
-        match Self::bounds(offset, size, position) {
-            Some((min, max)) => Some(record.seq()[min..max].to_vec()),
-            None => None
-        }
+        Self::bounds(offset, size, position).map(|(min, max)| record.seq()[min..max].to_vec())
     }
 
     /// Trims the reverse complemented sequence to the required boundaries
@@ -164,10 +161,7 @@ impl Counter {
             size: usize,
             position: &Position) -> Option<Vec<u8>>
     {
-        match Self::bounds(offset, size, position) {
-            Some((min, max)) => Some(record.seq_rev_comp()[min..max].to_vec()),
-            None => None
-        }
+        Self::bounds(offset, size, position).map(|(min, max)| record.seq_rev_comp()[min..max].to_vec())
     }
 
     /// Main functionality of the struct. Performs the counting operation.
