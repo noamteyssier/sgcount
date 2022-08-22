@@ -1,0 +1,17 @@
+title: sgcount
+email: noam.teyssier@ucsf.edu
+description: >-
+  A fast and flexible sgRNA counter for CRISPR screens. 
+baseurl: "sgcount.github.io"
+url: "https://noamteyssier.github.io"
+twitter_username: noamteyssier
+github_username: noamteyssier
+
+# Build settings
+theme: minima
+plugins:
+  - jekyll-feed
+
+# Theme config
+minima:
+  - skin: dark
