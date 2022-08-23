@@ -59,4 +59,4 @@ The ultimate goal of this tool is to count the number of each sgRNA within each 
 ---
 
 ## Implementation
-If you're interested to see how this works, or want to contribute, feel free to check out the [implementation details](/implementation/).
+If you're interested to see how this works, or want to contribute, feel free to check out the [implementation details](implementation.md).
