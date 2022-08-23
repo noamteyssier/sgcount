@@ -15,6 +15,5 @@ Cargo.lock
 
 # Project Specific Tracking
 *.counts
-*.gz
 *.fa
 justfile
