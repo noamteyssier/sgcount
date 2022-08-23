@@ -34,26 +34,26 @@ Because the sequences are constructed with a constant region it means that the n
 As a result, if you were to plot the entropy in each position across the sequence you will see near-zero entropy everywhere except for the variable region.
 
 ```
-[ 1e-3 1e-3 2e-3 1e-3 0.5 0.7 0.8 0.7 1e-4 1e-3 1e-3 2e-3 ]
-                     ^               ^
-                     |               |
-             variable_start    variable_end
+[ 1e-3 | 1e-3 | 2e-3 | 1e-3 | 0.5 | 0.7 | 0.8 | 0.7 | 1e-4 | 1e-3 | 1e-3 | 2e-3 ]
+                            ^                       ^
+                            |                       |
+                    variable_start            variable_end
 ```
 
 To determine where this region starts and ends, I first calculate the positional entropy in the reference library, then sample a few thousand sequences from the sample libraries, and then determine which positions minimize a minimum-squared-error between the two. 
 
 ```
-[ 0.5 0.7 0.8 0.7 ]                       << Reference Entropy
-[ 1e-3 2e-3 0.5 0.7 0.8 0.7 1e-4 1e-3 ]   <<  Observed Entropy
+[  0.5 |  0.7 |  0.8 |  0.7 ]                               << Reference Entropy
+[ 1e-3 | 2e-3 |  0.5 |  0.7 |  0.8 |  0.7 | 1e-4 | 1e-3 ]   <<  Observed Entropy
 ```
 
 ```
-[ 1e-3 2e-3 0.5 0.7 0.8 0.7 1e-4 1e-3 ]
-[ 0.5  0.7  0.8 0.7 ]
-     [ 0.5  0.7 0.8 0.7 ]
-          [ 0.5 0.7 0.8 0.7 ]           << Minimal MSE @ 3rd basepair
-              [ 0.5 0.7 0.8 0.7 ]
-                  [ 0.5 0.7 0.8  0.7 ]
+[ 1e-3 | 2e-3 |  0.5 |  0.7 |  0.8 |  0.7 | 1e-4 | 1e-3 ]
+[ 0.5  |  0.7 |  0.8 |  0.7 ]
+       [ 0.5  |  0.7 |  0.8 |  0.7 ]
+              [  0.5 |  0.7 |  0.8 |  0.7 ]                 << Minimum MSE Position
+                     [  0.5 |  0.7 |  0.8 |  0.7 ]
+                            [  0.5 |  0.7 |  0.8 |  0.7 ]
 ```
 
 
