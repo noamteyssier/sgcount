@@ -25,7 +25,7 @@ If you already know what these are, feel free to move on, otherwise take a close
 ### Basic usage
 This is meant to be run from the commandline, and follows a simple interface. 
 
-You specify your library with the `-l`, your sample(s) with the `-i`, and your output file with `-o`.
+You specify your library with `-l`, your sample(s) with `-i`, and your output file with `-o`.
 
 ```bash
 sgcount \
