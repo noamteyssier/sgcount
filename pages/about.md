@@ -27,7 +27,7 @@ The ultimate goal of this tool is to count the number of each sgRNA within each 
 1. Variable region placement is identified (this is done on a sample-by-sample basis in case any samples were prepared differently).
 
 2. Library sequences are read in and validated for uniqueness and equivalent size. 
-    - This program __will not run__ if there are __duplicate sequences__ (solutions in [usage](/usage/)).
+    - This program __will not run__ if there are __duplicate sequences__ (solutions in [usage](usage.md)).
     - This program __will not run__ if the __library sequences are different lengths__.
     - If single mismatches are allowed the unambiguous mismatch library will be generated.
 
