@@ -6,9 +6,9 @@ permalink: /implementation/
 
 ---
 ## Implementation
-Ultimately this is written to be as fast as possible by using sequence hashing.
+This is written to reduce search space complexity as much as possible using sequence hashing.
 
-The library is hashed upon entry, sequences are trimmed to the positions of interest, then checked against the hashmap and counted.
+The reference library is hashed upon reading, sequences are trimmed to the positions of interest, then checked against the reference library hashmap and counted.
 
 ### Reading in the Library
 The library is read-in as a `fasta` formatted file into a `HashMap`. 
