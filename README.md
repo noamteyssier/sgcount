@@ -6,22 +6,22 @@
 This was developed to be a simple yet powerful tool to take raw sequencing files to count tables.
 This will be the preprocessing step for [CRISPRBrain](https://crisprbrain.org/) and will eventually be available to perform analysis directly from the browser - but is available here as a standalone tool for those who would prefer local analysis. 
 
-## [About](/pages/about.md)
+## [About](https://noamteyssier.github.io/sgcount/about)
 `sgcount` was designed to be a single, easy, and fast interface for researchers who just want to get the results of their CRISPR screen.
 
 To learn more about the features of this tool over existing methods check out the [about](/pages/about.md) page.
 
-## [Install](/pages/install.md)
+## [Install](https://noamteyssier.github.io/sgcount/install)
 No wasted time fiddling with conda environments - `sgcount` is written in rust and is backed by its powerful package manager `cargo`.
 
 ```bash
 cargo install sgcount
 ```
 
-One line installation can be found in the [install](/pages/install.md) instructions. 
+One line installation can be found in the [install](https://noamteyssier.github.io/sgcount/install) instructions. 
 
-## [Usage](/pages/usage.md)
-If you're ready to go an run your first screen check out the [usage](/pages/usage.md).
+## [Usage](https://noamteyssier.github.io/sgcount/usage)
+If you're ready to go an run your first screen check out the [usage](https://noamteyssier.github.io/sgcount/usage).
 
 ```bash
 sgcount -l <library> -i <sample>
