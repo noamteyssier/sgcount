@@ -12,6 +12,9 @@ theme: minima
 plugins:
   - jekyll-feed
 
+# Markdown
+markdown: kramdown
+
 # Theme config
 minima:
   - skin: dark
