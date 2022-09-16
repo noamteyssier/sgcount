@@ -1,6 +1,6 @@
 [package]
 name = "sgcount"
-version = "0.1.22"
+version = "0.1.23"
 edition = "2021"
 description = "A fast and flexible sgRNA counter"
 license = "MIT"
@@ -13,12 +13,12 @@ categories = ["command-line-utilities", "science"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-fxread = "0.2"
-hashbrown = "0.12"
-anyhow = "1"
-clap = { version = "3.2", features = ["derive"] }
-rayon = "1.5"
-ndarray = "0.15"
-ndarray-stats = "0.5"
-bstr = "0.2.17"
+anyhow = "1.0.65"
+bstr = "1.0.1"
+clap = { version = "3.2.22", features = ["derive"] }
+fxread = "0.2.4"
+hashbrown = "0.12.3"
 indicatif = { version = "0.16.2", features = ["rayon"] }
+ndarray = "0.15.6"
+ndarray-stats = "0.5.1"
+rayon = "1.5.3"

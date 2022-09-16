@@ -29,7 +29,7 @@ impl GeneMap {
     /// Processes the tab delim file and panics if tabs are not found or duplicate `sgRNAs` are found
     fn build(path: &str) -> Result<HashMap<Vec<u8>, Vec<u8>>> {
         let file = File::open(path)?;
-        let buffer = BufReader::new(file);
+        let mut buffer = BufReader::new(file);
         let mut map = HashMap::new();
         buffer
             .for_byte_line(|line| {
