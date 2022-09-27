@@ -1,6 +1,11 @@
 ![logo](https://raw.githubusercontent.com/noamteyssier/sgcount/gh-pages/images/logo.svg)
 
 # sgcount
+
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE.md)
+![actions status](https://github.com/noamteyssier/sgcount/workflows/CI/badge.svg)
+[![codecov](https://codecov.io/github/noamteyssier/sgcount/branch/main/graph/badge.svg?token=IM36KMKJ9T)](https://codecov.io/github/noamteyssier/sgcount)
+
 `sgcount` is a fast and flexible sgRNA counter for CRISPR screens.
 
 This was developed to be a simple yet powerful tool to take raw sequencing files to count tables.
