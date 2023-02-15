@@ -109,3 +109,72 @@ pub fn write_results(
     let columns = generate_columns(names, genemap);
     write(path, iterable, &columns)
 }
+
+#[cfg(test)]
+mod testing {
+    use hashbrown::HashMap;
+    use super::*;
+
+    fn build_counter() -> Counter {
+        let map = vec![
+            (b"gene1".to_vec(), 100),
+            (b"gene2".to_vec(), 200)
+        ].into_iter().collect::<HashMap<_, _>>();
+        Counter::from_hashmap(map)
+    }
+
+    fn build_library() -> Library {
+        let map = vec![
+            (b"ACTG".to_vec(), b"gene1".to_vec()),
+            (b"GTCA".to_vec(), b"gene2".to_vec())
+        ].into_iter().collect::<HashMap<_, _>>();
+        Library::from_hashmap(map).unwrap()
+    }
+
+    fn build_gene_map() -> GeneMap {
+        let map = vec![
+            (b"gene1".to_vec(), b"GENE1".to_vec()),
+            (b"gene2".to_vec(), b"GENE2".to_vec())
+        ].into_iter().collect::<HashMap<_, _>>();
+        GeneMap::from_hashmap(map)
+    }
+
+    #[test]
+    fn test_generate_columns() {
+        let names = vec!["A".to_string(), "B".to_string()];
+        let genemap = None;
+        let columns = generate_columns(&names, &genemap);
+        assert_eq!(columns, "Guide\tA\tB");
+    }
+
+    #[test]
+    fn test_write_results() {
+        let path = Some("test.txt".to_string());
+        let results = vec![
+            build_counter(),
+            build_counter()
+        ];
+        let library = build_library();
+        let genemap = build_gene_map();
+        let names = ["sample1".to_string(), "sample2".to_string()];
+
+        write_results(path, &results, &library, &names, &Some(genemap)).unwrap();
+    }
+
+    #[test]
+    fn test_append_count() {
+        let counter = build_counter();
+        let mut accum = String::new();
+        append_count(b"gene1", &counter, &mut accum);
+        assert_eq!(accum, "\t100");
+    }
+
+    #[test]
+    fn test_append_gene() {
+        let genemap = build_gene_map();
+        let mut accum = String::new();
+        append_gene(b"gene1", &Some(genemap), 0, &mut accum);
+        assert_eq!(accum, "\tGENE1");
+    }
+
+}
