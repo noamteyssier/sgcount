@@ -87,7 +87,6 @@ mod testing {
 
     use crate::Library;
 
-
     fn build_example_buffer() -> String {
         "gene1\tsgrna1\n\
          gene2\tsgrna2\n\
@@ -148,5 +147,4 @@ mod testing {
         assert_eq!(genemap.get(b"lib.0").unwrap(), &b"gene.0"[..]);
         assert_eq!(genemap.get(b"lib.99").unwrap(), &b"gene.9"[..]);
     }
-
 }

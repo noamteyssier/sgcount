@@ -359,5 +359,4 @@ mod test {
         let diff = posmat - expected;
         assert_eq!(diff.sum(), 0.);
     }
-    
 }
