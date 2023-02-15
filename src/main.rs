@@ -10,8 +10,8 @@
 #![warn(missing_docs)]
 use std::path::Path;
 
-use clap::Parser;
 use anyhow::Result;
+use clap::Parser;
 
 /// Module for Sequence Library
 pub mod library;
@@ -22,7 +22,7 @@ pub mod counter;
 /// Module for Handling Results
 pub mod results;
 
-/// Module for Unambiguous One-Off Sequence Generation 
+/// Module for Unambiguous One-Off Sequence Generation
 pub mod permutes;
 
 /// Module for Determining Entropy Offset of Reads
@@ -37,31 +37,29 @@ pub mod genemap;
 /// Module for utility functions regarding progress spinners
 pub mod progress;
 
-pub use fxread::initialize_reader;
-pub use library::Library;
-pub use counter::Counter;
-use offsetter::entropy_offset_group;
-pub use permutes::Permuter;
-pub use offsetter::{Offset, entropy_offset};
 pub use count::count;
+pub use counter::Counter;
+pub use fxread::initialize_reader;
 pub use genemap::GeneMap;
+pub use library::Library;
+use offsetter::entropy_offset_group;
+pub use offsetter::{entropy_offset, Offset};
+pub use permutes::Permuter;
 use progress::{finish_progress_bar, initialize_progress_bar, start_progress_bar};
-
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-
     /// Filepath of the library
     #[clap(short, long, value_parser)]
     library_path: String,
 
     /// Filepath(s) of fastx (fastq, fasta, *.gz) sequences to map
-    #[clap(short, long, value_parser, min_values=1, required=true)]
+    #[clap(short, long, value_parser, min_values = 1, required = true)]
     input_paths: Vec<String>,
 
     /// Sample Names
-    #[clap(short='n', long, value_parser, min_values=1, required=false)]
+    #[clap(short = 'n', long, value_parser, min_values = 1, required = false)]
     sample_names: Option<Vec<String>>,
 
     /// Output filepath [default: stdout]
@@ -73,32 +71,32 @@ struct Args {
     genemap: Option<String>,
 
     /// Adapter Offset
-    #[clap(short='a', long, value_parser)]
+    #[clap(short = 'a', long, value_parser)]
     offset: Option<usize>,
 
     /// Remove Position Recursion (i.e. offseting sequences by +/- 1 on mismatch condition)
-    #[clap(short='p', long)]
+    #[clap(short = 'p', long)]
     no_position_recursion: bool,
 
     /// Read Direction (reverse complement reads)
-    #[clap(short='r', long)]
+    #[clap(short = 'r', long)]
     reverse: bool,
 
     /// Disallow One Off Mismatch
-    #[clap(short='x', long)]
+    #[clap(short = 'x', long)]
     exact: bool,
 
     /// Number of Reads to Subsample in Determining Offset [default: 5000]
-    #[clap(short='s', long)]
+    #[clap(short = 's', long)]
     subsample: Option<usize>,
 
     /// Number of Threads to Use for Parallel Jobs
-    #[clap(short='t', long, default_value="1")]
+    #[clap(short = 't', long, default_value = "1")]
     threads: usize,
 
     /// Does not show progress
-    #[clap(short='q', long)]
-    quiet: bool
+    #[clap(short = 'q', long)]
+    quiet: bool,
 }
 
 /// Sets the number of threads globally
@@ -110,8 +108,7 @@ fn set_threads(threads: usize) {
 }
 
 /// Generates default sample names
-fn generate_sample_names(
-        input_paths: &[String]) -> Vec<String> {
+fn generate_sample_names(input_paths: &[String]) -> Vec<String> {
     input_paths
         .iter()
         .enumerate()
@@ -121,13 +118,17 @@ fn generate_sample_names(
 
 /// Calculates Offset if Required
 fn calculate_offset(
-        library_path: &str,
-        input_paths: &[String],
-        subsample: Option<usize>,
-        quiet: bool) -> Result<Vec<Offset>> { 
-
+    library_path: &str,
+    input_paths: &[String],
+    subsample: Option<usize>,
+    quiet: bool,
+) -> Result<Vec<Offset>> {
     let subsample = subsample.unwrap_or(5000);
-    let pb = if quiet { None } else { Some(initialize_progress_bar()) };
+    let pb = if quiet {
+        None
+    } else {
+        Some(initialize_progress_bar())
+    };
     start_progress_bar(&pb, "Calculating Offset".to_string());
     let offset = entropy_offset_group(library_path, input_paths, subsample)?;
     finish_progress_bar(&pb, format!("Calculated Offsets: {:?}", offset));
@@ -137,10 +138,15 @@ fn calculate_offset(
 /// Validate Paths Exist
 fn validate_paths(input_paths: &[String]) {
     for x in input_paths.iter() {
-        if !Path::new(x).exists() { assert!(Path::new(x).exists(), "Provided filepath does not exist: {}", x); }
-    };
+        if !Path::new(x).exists() {
+            assert!(
+                Path::new(x).exists(),
+                "Provided filepath does not exist: {}",
+                x
+            );
+        }
+    }
 }
-
 
 fn main() -> Result<()> {
     let args = Args::parse();
@@ -152,20 +158,37 @@ fn main() -> Result<()> {
 
     // generates sample names if required
     let sample_names = match args.sample_names {
-        Some(s) => if s.len() == args.input_paths.len() { s } else { panic!("Must provide as many sample names as there are input files") },
-        None => generate_sample_names(&args.input_paths)
+        Some(s) => {
+            if s.len() == args.input_paths.len() {
+                s
+            } else {
+                panic!("Must provide as many sample names as there are input files")
+            }
+        }
+        None => generate_sample_names(&args.input_paths),
     };
 
     // calculates offset if required
     let offset = match args.offset {
-        Some(o) => if args.reverse { vec![Offset::Reverse(o); args.input_paths.len()] } else { vec![Offset::Forward(o); args.input_paths.len()] },
-        None => calculate_offset(&args.library_path, &args.input_paths, args.subsample, args.quiet)?
+        Some(o) => {
+            if args.reverse {
+                vec![Offset::Reverse(o); args.input_paths.len()]
+            } else {
+                vec![Offset::Forward(o); args.input_paths.len()]
+            }
+        }
+        None => calculate_offset(
+            &args.library_path,
+            &args.input_paths,
+            args.subsample,
+            args.quiet,
+        )?,
     };
 
     // builds gene map is provided
     let genemap = match args.genemap {
         Some(g) => Some(GeneMap::new(&g)?),
-        None => None
+        None => None,
     };
 
     // default position recursion is true; flag flips this bool
@@ -181,7 +204,8 @@ fn main() -> Result<()> {
         args.exact,
         &genemap,
         position_recursion,
-        args.quiet)?;
+        args.quiet,
+    )?;
 
     Ok(())
 }
