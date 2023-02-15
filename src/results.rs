@@ -96,7 +96,7 @@ mod testing {
     use hashbrown::HashMap;
 
     fn build_counter() -> Counter {
-        let map = vec![(b"gene1".to_vec(), 100), (b"gene2".to_vec(), 200)]
+        let map = vec![(b"sgrna1".to_vec(), 100), (b"sgrna2".to_vec(), 200)]
             .into_iter()
             .collect::<HashMap<_, _>>();
         Counter::from_hashmap(map)
@@ -104,8 +104,8 @@ mod testing {
 
     fn build_library() -> Library {
         let map = vec![
-            (b"ACTG".to_vec(), b"gene1".to_vec()),
-            (b"GTCA".to_vec(), b"gene2".to_vec()),
+            (b"ACTG".to_vec(), b"sgrna1".to_vec()),
+            (b"GTCA".to_vec(), b"sgrna2".to_vec()),
         ]
         .into_iter()
         .collect::<HashMap<_, _>>();
@@ -114,8 +114,8 @@ mod testing {
 
     fn build_gene_map() -> GeneMap {
         let map = vec![
-            (b"gene1".to_vec(), b"GENE1".to_vec()),
-            (b"gene2".to_vec(), b"GENE2".to_vec()),
+            (b"sgrna1".to_vec(), b"GENE1".to_vec()),
+            (b"sgrna2".to_vec(), b"GENE2".to_vec()),
         ]
         .into_iter()
         .collect::<HashMap<_, _>>();
@@ -145,7 +145,7 @@ mod testing {
     fn test_append_count() {
         let counter = build_counter();
         let mut accum = String::new();
-        append_count(b"gene1", &counter, &mut accum);
+        append_count(b"sgrna1", &counter, &mut accum);
         assert_eq!(accum, "\t100");
     }
 
@@ -153,7 +153,7 @@ mod testing {
     fn test_append_gene() {
         let genemap = build_gene_map();
         let mut accum = String::new();
-        append_gene(b"gene1", &Some(genemap), 0, &mut accum);
+        append_gene(b"sgrna1", &Some(genemap), 0, &mut accum);
         assert_eq!(accum, "\tGENE1");
     }
 }
