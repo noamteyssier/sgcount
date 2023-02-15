@@ -10,6 +10,13 @@ pub struct GeneMap {
     map: HashMap<Vec<u8>, Vec<u8>>
 }
 impl GeneMap {
+    
+    /// Creates a new genemap from a hashmap
+    /// Used for testing
+    pub fn from_hashmap(map: HashMap<Vec<u8>, Vec<u8>>) -> Self {
+        Self { map }
+    }
+
     /// Creates a new genemap from a filepath
     pub fn new(path: &str) -> Result<Self> {
         Self::validate_path(path)?;
