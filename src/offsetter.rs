@@ -1,6 +1,6 @@
 use fxread::{Record, initialize_reader};
 use ndarray::{Axis, Array2, Array1, ArrayBase, ViewRepr, Dim};
-use anyhow::Result;
+use anyhow::{Result, bail};
 use ndarray_stats::{EntropyExt, DeviationExt, QuantileExt};
 
 /// An enumeration describing whether the sequences
@@ -151,15 +151,16 @@ fn assign_offset(
 }
 
 /// Calculates the starting position which minimizes the entropy between two entropy arrays
-fn minimize_mse(reference: &Array1<f64>, comparison: &Array1<f64>) -> Offset {
-    let size = comparison.len() - reference.len() + 1;
-    assert!(size > 0);
+fn minimize_mse(reference: &Array1<f64>, comparison: &Array1<f64>) -> Result<Offset> {
+    if comparison.len() < reference.len() {
+        bail!("Sequences in reference library are larger than the sequences in input.\nConsider reducing the length of your reference sequences (i.e. extracting the variable region of the sgRNA or reducing the length of the adapters.)")
+    }
     let rev_comparison = comparison.iter().rev().copied().collect();
 
     let mse_forward = windowed_mse(reference, comparison);
     let mse_reverse = windowed_mse(reference, &rev_comparison);
 
-    assign_offset(&mse_forward, &mse_reverse)
+    Ok(assign_offset(&mse_forward, &mse_reverse))
 }
 
 /// Calculates the Offset in the Comparison by Minimizing
@@ -175,7 +176,7 @@ pub fn entropy_offset(
     let reference_entropy = positional_entropy(&mut reference);
     let comparison_entropy = positional_entropy(&mut comparison);
 
-    let index = minimize_mse(&reference_entropy, &comparison_entropy);
+    let index = minimize_mse(&reference_entropy, &comparison_entropy)?;
     Ok(index)
 }
 
@@ -189,16 +190,23 @@ pub fn entropy_offset_group(
 {
     let mut reference = initialize_reader(library_path)?;
     let reference_entropy = positional_entropy(&mut reference);
-    let result: Vec<Offset> = input_paths
+    let result = input_paths
         .iter()
         .map(|x| 
             initialize_reader(x)
                 .unwrap_or_else(|_| panic!("Unable to open file: {}", x))
                 .take(subsample))
         .map(|mut x| positional_entropy(&mut x))
-        .map(|x| minimize_mse(&reference_entropy, &x))
-        .collect();
-    Ok(result)
+        .map(|x| minimize_mse(&reference_entropy, &x));
+
+    let mut results = vec![];
+    for x in result {
+        match x {
+            Ok(y) => results.push(y),
+            Err(why) => bail!("Error in entropy offset calculation:\n\n{}", why)
+        }
+    }
+    Ok(results)
 }
 
 #[cfg(test)]
