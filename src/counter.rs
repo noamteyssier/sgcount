@@ -19,6 +19,11 @@ pub struct Counter {
     results: HashMap<Vec<u8>, usize>
 }
 impl Counter {
+
+    /// Initializes a counter from a hashmap directly (for testing)
+    pub fn from_hashmap(map: HashMap<Vec<u8>, usize>) -> Self {
+        Self { results: map }
+    }
     
     /// Initializes counting of reads from the [`FastxRead`] object within
     /// the [`Library`]. Optional argument for the unambiguous sequence permutations
