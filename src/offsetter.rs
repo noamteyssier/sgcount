@@ -21,6 +21,16 @@ impl Offset {
             Self::Forward(index) | Self::Reverse(index) => index,
         }
     }
+
+    /// Returns `true` if the offset is in the forward direction
+    pub fn is_forward(&self) -> bool {
+        matches!(self, Self::Forward(_))
+    }
+
+    /// Returns `true` if the offset is in the reverse direction
+    pub fn is_reverse(&self) -> bool {
+        matches!(self, Self::Reverse(_))
+    }
 }
 
 /// Calculates the size of the first sequence in a [`fxread::FastxRead`] Iterator.
@@ -200,6 +210,8 @@ pub fn entropy_offset_group(
 
 #[cfg(test)]
 mod test {
+    use crate::offsetter::base_map;
+
     use super::{
         get_sequence_size, minimize_mse, normalize_counts, position_counts, positional_entropy,
         Offset,
@@ -210,6 +222,12 @@ mod test {
     // create reader with an `AC` static prefix
     fn reader() -> Box<dyn FastxRead<Item = Record>> {
         let sequence: &'static [u8] = b">seq.0\nACT\n>seq.1\nACC\n>seq.2\nACT\n";
+        Box::new(FastaReader::new(sequence))
+    }
+
+    // create reader with an `AC` static prefix
+    fn reader_with_n() -> Box<dyn FastxRead<Item = Record>> {
+        let sequence: &'static [u8] = b">seq.0\nACT\n>seq.1\nACC\n>seq.2\nACT\n>seq.3\nACN\n";
         Box::new(FastaReader::new(sequence))
     }
 
@@ -307,4 +325,39 @@ mod test {
         };
         assert_eq!(index, 5);
     }
+
+    #[test]
+    fn test_offset_enum() {
+        let offset = Offset::Forward(5);
+        assert_eq!(offset.index(), &5);
+        assert_eq!(offset.is_forward(), true);
+        assert_eq!(offset.is_reverse(), false);
+        let offset = Offset::Reverse(5);
+        assert_eq!(offset.index(), &5);
+        assert_eq!(offset.is_forward(), false);
+        assert_eq!(offset.is_reverse(), true);
+    }
+
+    #[test]
+    fn test_base_map() {
+        assert_eq!(base_map(b'A'), Some(0));
+        assert_eq!(base_map(b'C'), Some(1));
+        assert_eq!(base_map(b'G'), Some(2));
+        assert_eq!(base_map(b'T'), Some(3));
+        assert_eq!(base_map(b'N'), None);
+        assert_eq!(base_map(b'X'), None);
+    }
+
+    #[test]
+    fn test_position_counts_with_n() {
+        let posmat = position_counts(&mut reader_with_n());
+        let expected = ndarray::array![
+            [3.0, 0.0, 0.0, 0.0],
+            [0.0, 3.0, 0.0, 0.0],
+            [2.0, 1.0, 2.0, 1.0]
+        ];
+        let diff = posmat - expected;
+        assert_eq!(diff.sum(), 0.);
+    }
+    
 }
