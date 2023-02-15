@@ -54,3 +54,43 @@ pub fn finish_progress_bar(pb: &Option<ProgressBar>, msg: String) {
         p.finish_with_message(msg);
     }
 }
+
+#[cfg(test)]
+mod testing {
+    
+    #[test]
+    fn test_initialize_multi_progress() {
+        let sample_names = vec!["sample1".to_string(), "sample2".to_string()];
+        let (mp, pbs) = super::initialize_multi_progress(&sample_names);
+        assert!(mp.is_some());
+        assert!(pbs.is_some());
+        let pbs = pbs.unwrap();
+        assert_eq!(pbs.len(), 2);
+    }
+
+    #[test]
+    fn test_initialize_progress_bar() {
+        let pb = super::initialize_progress_bar();
+        super::finish_progress_bar(&Some(pb), "done".to_string());
+    }
+
+    #[test]
+    fn test_start_progress_bar_ref() {
+        let pb = super::initialize_progress_bar();
+        super::start_progress_bar_ref(Some(&pb), "starting".to_string());
+        super::finish_progress_bar(&Some(pb), "done".to_string());
+    }
+
+    #[test]
+    fn test_finish_progress_bar_ref() {
+        let pb = super::initialize_progress_bar();
+        super::start_progress_bar_ref(Some(&pb), "starting".to_string());
+        super::finish_progress_bar_ref(Some(&pb), "done".to_string());
+    }
+
+    #[test]
+    fn test_start_progress_bar() {
+        let pb = super::initialize_progress_bar();
+        super::start_progress_bar(&Some(pb), "starting".to_string());
+    }
+}
