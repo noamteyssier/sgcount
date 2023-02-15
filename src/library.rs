@@ -21,6 +21,14 @@ impl Library {
         Ok( Self { table, size } )
     }
 
+    /// Creates a library from a [`HashMap`] of sequences and aliases.
+    /// Confirms that all values are of equivalent size.
+    /// Used for testing
+    pub fn from_hashmap(table: HashMap<Vec<u8>, Vec<u8>>) -> Result<Self> {
+        let size = Self::calculate_base_size(&table)?;
+        Ok( Self { table, size } )
+    }
+
     /// Publically exposes the internal [`HashMap`] and returns
     /// the optional value (AKA its sequence id/header) to a provided token. 
     #[must_use] pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
