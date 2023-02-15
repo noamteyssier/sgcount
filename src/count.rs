@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 use fxread::initialize_reader;
 use rayon::prelude::*;
 use indicatif::ProgressBar;
@@ -39,6 +39,20 @@ fn generate_permutations(
     permuter
 }
 
+/// Validates that the library size is not too large with respect to the input sequences
+fn validate_library_size(
+        library: &Library,
+        input_paths: &[String]) -> Result<bool> {
+    for path in input_paths {
+        let mut reader = initialize_reader(path)?;
+        let size = reader.next().unwrap().seq().len();
+        if library.size() > size {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
 
 /// Counts the number of matching sgRNA-reads for all provided filepaths
 pub fn count(
@@ -52,7 +66,6 @@ pub fn count(
     position_recursion: bool,
     quiet: bool) -> Result<()> {
 
-
     // generate library
     let library = Library::from_reader(
         initialize_reader(library_path)?
@@ -61,6 +74,11 @@ pub fn count(
     // validate all library sgRNA aliases exist if genemap provided
     if let Some(g) = genemap {
         assert!(g.validate_library(&library), "Missing sgRNAs in gene map");
+    }
+
+    // validate library size
+    if !validate_library_size(&library, &input_paths)? {
+        bail!("Sequences in reference library are larger than the sequences in input.\n\nConsider reducing the length of your reference sequences (i.e. extracting the variable region of the sgRNA or reducing the length of the adapters.)")
     }
 
     // generate permuter if necessary
