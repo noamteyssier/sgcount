@@ -1,15 +1,19 @@
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 /// Initializes a Multiprogress bar for parallel logging
-#[must_use] pub fn initialize_multi_progress(sample_names: &[String]) -> (Option<MultiProgress>, Option<Vec<ProgressBar>>) {
+#[must_use]
+pub fn initialize_multi_progress(
+    sample_names: &[String],
+) -> (Option<MultiProgress>, Option<Vec<ProgressBar>>) {
     let mp = MultiProgress::new();
     let progress_bars: Vec<ProgressBar> = sample_names
         .iter()
-        .map(|_| 
-            ProgressBar::new_spinner()
-                .with_style(ProgressStyle::default_spinner()
-                    .template("{prefix} {spinner} [{elapsed_precise}] {msg}"))
+        .map(|_| {
+            ProgressBar::new_spinner().with_style(
+                ProgressStyle::default_spinner()
+                    .template("{prefix} {spinner} [{elapsed_precise}] {msg}"),
             )
+        })
         .enumerate()
         .map(|(idx, pb)| mp.insert(idx, pb))
         .collect();
@@ -17,10 +21,11 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 }
 
 /// Initializes a progress spinner
-#[must_use] pub fn initialize_progress_bar() -> ProgressBar {
-    ProgressBar::new_spinner()
-        .with_style(ProgressStyle::default_spinner()
-            .template("{prefix} {spinner} [{elapsed_precise}] {msg}"))
+#[must_use]
+pub fn initialize_progress_bar() -> ProgressBar {
+    ProgressBar::new_spinner().with_style(
+        ProgressStyle::default_spinner().template("{prefix} {spinner} [{elapsed_precise}] {msg}"),
+    )
 }
 
 /// Starts a progress bar that is an optional reference
@@ -57,7 +62,7 @@ pub fn finish_progress_bar(pb: &Option<ProgressBar>, msg: String) {
 
 #[cfg(test)]
 mod testing {
-    
+
     #[test]
     fn test_initialize_multi_progress() {
         let sample_names = vec!["sample1".to_string(), "sample2".to_string()];

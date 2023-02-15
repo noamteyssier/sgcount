@@ -1,24 +1,23 @@
 use anyhow;
 use anyhow::Result;
+use fxread::{FastxRead, Record};
 use hashbrown::HashMap;
-use fxread::{Record, FastxRead};
 
 type FxReader = Box<dyn FastxRead<Item = Record>>;
 
 /// Container for input library sequences.
 pub struct Library {
     table: HashMap<Vec<u8>, Vec<u8>>,
-    size: usize
+    size: usize,
 }
 impl Library {
-
     /// Creates a library from a [`fxread::FastxRead`] capable object.
     /// Reads the records from iterator then confirms that all values
     /// are of equivalent size.
     pub fn from_reader(reader: FxReader) -> Result<Self> {
         let table = Self::table_from_reader(reader);
         let size = Self::calculate_base_size(&table)?;
-        Ok( Self { table, size } )
+        Ok(Self { table, size })
     }
 
     /// Creates a library from a [`HashMap`] of sequences and aliases.
@@ -26,17 +25,23 @@ impl Library {
     /// Used for testing
     pub fn from_hashmap(table: HashMap<Vec<u8>, Vec<u8>>) -> Result<Self> {
         let size = Self::calculate_base_size(&table)?;
-        Ok( Self { table, size } )
+        Ok(Self { table, size })
     }
 
     /// Publically exposes the internal [`HashMap`] and returns
-    /// the optional value (AKA its sequence id/header) to a provided token. 
-    #[must_use] pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
-        if self.table.contains_key(token) { self.alias(token) } else { None }
+    /// the optional value (AKA its sequence id/header) to a provided token.
+    #[must_use]
+    pub fn contains(&self, token: &[u8]) -> Option<&Vec<u8>> {
+        if self.table.contains_key(token) {
+            self.alias(token)
+        } else {
+            None
+        }
     }
 
     /// Returns the alias to a sequence (AKA its sequence id / header)
-    #[must_use] pub fn alias(&self, token: &[u8]) -> Option<&Vec<u8>> {
+    #[must_use]
+    pub fn alias(&self, token: &[u8]) -> Option<&Vec<u8>> {
         self.table.get(token)
     }
 
@@ -51,14 +56,14 @@ impl Library {
     }
 
     /// The unique sequence size of all elements within the library
-    #[must_use] pub fn size(&self) -> usize {
+    #[must_use]
+    pub fn size(&self) -> usize {
         self.size
     }
 
     /// Validates that all sequences are of equivalent length
     fn validate_unique_size<'a>(keys: impl Iterator<Item = &'a Vec<u8>>) -> bool {
-        keys
-            .collect::<Vec<&Vec<u8>>>()
+        keys.collect::<Vec<&Vec<u8>>>()
             .windows(2)
             .map(|x| (x[0], x[1]))
             .all(|(x, y)| x.len() == y.len())
@@ -82,24 +87,23 @@ impl Library {
     /// Main init iterator which reads in all sequences fromthe reader and
     /// imports them into the internal [`HashMap`]
     fn table_from_reader(reader: FxReader) -> HashMap<Vec<u8>, Vec<u8>> {
-        reader
-            .into_iter()
-            .fold(
-                HashMap::new(),
-                |mut map, x| {
-                    match map.insert(x.seq().to_owned(), x.id().to_owned()) {
-                        Some(_) => panic!("Unexpected duplicate sequence in library found: {}", std::str::from_utf8(x.seq()).unwrap()),
-                        None => map
-                    }
-                })
+        reader.into_iter().fold(HashMap::new(), |mut map, x| {
+            match map.insert(x.seq().to_owned(), x.id().to_owned()) {
+                Some(_) => panic!(
+                    "Unexpected duplicate sequence in library found: {}",
+                    std::str::from_utf8(x.seq()).unwrap()
+                ),
+                None => map,
+            }
+        })
     }
 }
 
 #[cfg(test)]
 mod test {
 
-    use fxread::{FastaReader, FastxRead, Record};
     use super::Library;
+    use fxread::{FastaReader, FastxRead, Record};
 
     fn reader() -> Box<dyn FastxRead<Item = Record>> {
         let sequence: &'static [u8] = b">seq.0\nACTG\n";
