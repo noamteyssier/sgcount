@@ -17,3 +17,4 @@ Cargo.lock
 *.counts
 *.fa
 justfile
+test.txt
