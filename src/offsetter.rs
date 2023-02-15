@@ -239,18 +239,17 @@ mod test {
     fn minimization() {
         let arr = Array1::linspace(0., 10., 11);
         let brr = Array1::linspace(10., 20., 100);
-        match minimize_mse(&arr, &brr) {
+        match minimize_mse(&arr, &brr).unwrap() {
             Offset::Forward(x) => assert_eq!(x, 0),
             Offset::Reverse(_) => assert!(false)
         }
     }
 
     #[test]
-    #[should_panic]
     fn undersized_minimization() {
         let arr = Array1::linspace(0., 10., 11);
         let brr = Array1::linspace(10., 20., 5);
-        minimize_mse(&arr, &brr);
+        assert!(minimize_mse(&arr, &brr).is_err());
     }
 
     #[test]
@@ -294,7 +293,7 @@ mod test {
 
         let reference_entropy = positional_entropy(&mut reference);
         let comparison_entropy = positional_entropy(&mut comparison);
-        let index = match minimize_mse(&reference_entropy, &comparison_entropy) {
+        let index = match minimize_mse(&reference_entropy, &comparison_entropy).unwrap() {
             Offset::Forward(x) => x,
             Offset::Reverse(_) => panic!("Unexpected reverse")
         };
@@ -308,7 +307,7 @@ mod test {
         let mut comparison = rc_offset_reader();
         let reference_entropy = positional_entropy(&mut reference);
         let comparison_entropy = positional_entropy(&mut comparison);
-        let index = match minimize_mse(&reference_entropy, &comparison_entropy) {
+        let index = match minimize_mse(&reference_entropy, &comparison_entropy).unwrap() {
             Offset::Forward(_) => panic!("Unexpected forward"),
             Offset::Reverse(x) => x
         };
