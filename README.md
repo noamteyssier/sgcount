@@ -14,7 +14,7 @@ This will be the preprocessing step for [CRISPRBrain](https://crisprbrain.org/) 
 ## [About](https://noamteyssier.github.io/sgcount/about)
 `sgcount` was designed to be a single, easy, and fast interface for researchers who just want to get the results of their CRISPR screen.
 
-To learn more about the features of this tool over existing methods check out the [about](/pages/about.md) page.
+To learn more about the features of this tool over existing methods check out the [about](https://noamteyssier.github.io/sgcount/about/) page.
 
 ## [Install](https://noamteyssier.github.io/sgcount/install)
 No wasted time fiddling with conda environments - `sgcount` is written in rust and is backed by its powerful package manager `cargo`.
@@ -23,7 +23,7 @@ No wasted time fiddling with conda environments - `sgcount` is written in rust a
 cargo install sgcount
 ```
 
-One line installation can be found in the [install](https://noamteyssier.github.io/sgcount/install) instructions. 
+One line installation can be found in the [install](https://noamteyssier.github.io/sgcount/install) instructions.
 
 ## [Usage](https://noamteyssier.github.io/sgcount/usage)
 If you're ready to go an run your first screen check out the [usage](https://noamteyssier.github.io/sgcount/usage).
@@ -31,6 +31,11 @@ If you're ready to go an run your first screen check out the [usage](https://noa
 ```bash
 sgcount -l <library> -i <sample>
 ```
+
+## Running differential expression and gene aggregation
+
+Once you have your counts - check out my tool [`crispr_screen`](https://noamteyssier.github.io/crispr_screen/)
+to perform the differential expression and gene-level aggregation.
 
 # External Links
 * [Github Repo](https://github.com/noamteyssier/sgcount)
