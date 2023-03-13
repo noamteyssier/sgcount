@@ -16,11 +16,17 @@ enum Position {
 /// unambiguous sequence permutations contained within [`Permuter`].
 pub struct Counter {
     results: HashMap<Vec<u8>, usize>,
+    total_reads: usize,
+    matched_reads: usize,
 }
 impl Counter {
     /// Initializes a counter from a hashmap directly (for testing)
     pub fn from_hashmap(map: HashMap<Vec<u8>, usize>) -> Self {
-        Self { results: map }
+        Self {
+            results: map,
+            total_reads: 0,
+            matched_reads: 0,
+        }
     }
 
     /// Initializes counting of reads from the [`FastxRead`] object within
@@ -40,8 +46,23 @@ impl Counter {
         } else {
             Position::Null
         };
-        let results = Self::count(reader, library, permuter, offset, size, &position);
-        Self { results }
+        let mut total_reads = 0;
+        let mut matched_reads = 0;
+        let results = Self::count(
+            reader,
+            library,
+            permuter,
+            offset,
+            size,
+            &position,
+            &mut total_reads,
+            &mut matched_reads,
+        );
+        Self {
+            results,
+            total_reads,
+            matched_reads,
+        }
     }
 
     /// Publically exposes the results dictionary and returns either the observed count
@@ -184,14 +205,39 @@ impl Counter {
         offset: Offset,
         size: usize,
         position: &Position,
+        total_reads: &mut usize,
+        matched_reads: &mut usize,
     ) -> HashMap<Vec<u8>, usize> {
         reader
             .into_iter()
+            .map(|x| {
+                *total_reads += 1;
+                x
+            })
             .filter_map(|x| Self::assign(&x, library, permuter, offset, size, position))
+            .map(|x| {
+                *matched_reads += 1;
+                x
+            })
             .fold(HashMap::new(), |mut accum, x| {
                 *accum.entry(x.clone()).or_insert(0) += 1;
                 accum
             })
+    }
+
+    /// Returns the total number of reads processed
+    pub fn total_reads(&self) -> usize {
+        self.total_reads
+    }
+
+    /// Returns the number of reads that matched the library
+    pub fn matched_reads(&self) -> usize {
+        self.matched_reads
+    }
+
+    /// Returns the fraction of reads that matched the library
+    pub fn fraction_mapped(&self) -> f64 {
+        self.matched_reads as f64 / self.total_reads as f64
     }
 }
 
