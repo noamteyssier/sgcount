@@ -74,16 +74,24 @@ pub fn write_results(
     library: &Library,
     names: &[String],
     genemap: &Option<GeneMap>,
+    include_zero: bool,
 ) -> Result<()> {
-    let iterable = library.values().map(|alias| {
-        results.iter().enumerate().fold(
+    let iterable = library.values().filter_map(|alias| {
+        let mut total_alias_count = 0;
+        let accum = results.iter().enumerate().fold(
             String::from_utf8(alias.clone()).expect("invalid utf8"),
             |mut accum, (idx, x)| {
                 append_gene(alias, genemap, idx, &mut accum);
                 append_count(alias, x, &mut accum);
+                total_alias_count += x.get_value(alias);
                 accum
             },
-        )
+        );
+        if include_zero || total_alias_count > 0 {
+            Some(accum)
+        } else {
+            None
+        }
     });
 
     let columns = generate_columns(names, genemap);
@@ -138,7 +146,18 @@ mod testing {
         let genemap = build_gene_map();
         let names = ["sample1".to_string(), "sample2".to_string()];
 
-        write_results(path, &results, &library, &names, &Some(genemap)).unwrap();
+        write_results(path, &results, &library, &names, &Some(genemap), true).unwrap();
+    }
+
+    #[test]
+    fn test_write_results_no_zeros() {
+        let path = Some("test.txt".to_string());
+        let results = vec![build_counter(), build_counter()];
+        let library = build_library();
+        let genemap = build_gene_map();
+        let names = ["sample1".to_string(), "sample2".to_string()];
+
+        write_results(path, &results, &library, &names, &Some(genemap), false).unwrap();
     }
 
     #[test]

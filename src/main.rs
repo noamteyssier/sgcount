@@ -97,6 +97,10 @@ struct Args {
     /// Does not show progress
     #[clap(short = 'q', long)]
     quiet: bool,
+
+    /// Include zero count sgRNAs in output table
+    #[clap(short = 'z', long)]
+    include_zero: bool,
 }
 
 /// Sets the number of threads globally
@@ -204,6 +208,7 @@ fn main() -> Result<()> {
         args.exact,
         &genemap,
         position_recursion,
+        args.include_zero,
         args.quiet,
     )?;
 
