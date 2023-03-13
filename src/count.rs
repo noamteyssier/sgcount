@@ -132,7 +132,14 @@ pub fn count(
         m.join().unwrap()?
     };
 
-    write_results(output_path, &results?, &library, sample_names, genemap, include_zero)?;
+    write_results(
+        output_path,
+        &results?,
+        &library,
+        sample_names,
+        genemap,
+        include_zero,
+    )?;
 
     Ok(())
 }
