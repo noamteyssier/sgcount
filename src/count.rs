@@ -31,8 +31,7 @@ fn count_sample(
         library.size(),
         position_recursion,
     );
-    finish_progress_bar_ref(pb, format!("Finished: {}", name));
-
+    finish_progress_bar_ref(pb, format!("Finished: {}; Fraction mapped: {:.3} [{} / {}]", name, counter.fraction_mapped(), counter.matched_reads(), counter.total_reads()));
     Ok(counter)
 }
 
