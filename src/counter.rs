@@ -22,7 +22,11 @@ pub struct Counter {
 impl Counter {
     /// Initializes a counter from a hashmap directly (for testing)
     pub fn from_hashmap(map: HashMap<Vec<u8>, usize>) -> Self {
-        Self { results: map, total_reads: 0, matched_reads: 0 }
+        Self {
+            results: map,
+            total_reads: 0,
+            matched_reads: 0,
+        }
     }
 
     /// Initializes counting of reads from the [`FastxRead`] object within
@@ -44,8 +48,21 @@ impl Counter {
         };
         let mut total_reads = 0;
         let mut matched_reads = 0;
-        let results = Self::count(reader, library, permuter, offset, size, &position, &mut total_reads, &mut matched_reads);
-        Self { results, total_reads, matched_reads }
+        let results = Self::count(
+            reader,
+            library,
+            permuter,
+            offset,
+            size,
+            &position,
+            &mut total_reads,
+            &mut matched_reads,
+        );
+        Self {
+            results,
+            total_reads,
+            matched_reads,
+        }
     }
 
     /// Publically exposes the results dictionary and returns either the observed count
