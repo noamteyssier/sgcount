@@ -72,6 +72,7 @@ pub fn count(
     exact: bool,
     genemap: &Option<GeneMap>,
     position_recursion: bool,
+    include_zero: bool,
     quiet: bool,
 ) -> Result<()> {
     // generate library
@@ -131,7 +132,14 @@ pub fn count(
         m.join().unwrap()?
     };
 
-    write_results(output_path, &results?, &library, sample_names, genemap)?;
+    write_results(
+        output_path,
+        &results?,
+        &library,
+        sample_names,
+        genemap,
+        include_zero,
+    )?;
 
     Ok(())
 }
