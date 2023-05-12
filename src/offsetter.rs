@@ -60,6 +60,7 @@ fn position_counts(reader: &mut dyn Iterator<Item = Record>) -> Array2<f64> {
             .seq()
             .iter()
             .enumerate()
+            .take(size)
             .map(|(idx, c)| (idx, base_map(*c)))
             .for_each(|(idx, jdx)| {
                 if let Some(j) = jdx {
