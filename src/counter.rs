@@ -155,7 +155,12 @@ impl Counter {
 
     /// Calculates the bounds of the trimmed sequence given a positional offset
     #[inline]
-    fn bounds(seq: &[u8], offset: usize, size: usize, position: &Position) -> Option<(usize, usize)> {
+    fn bounds(
+        seq: &[u8],
+        offset: usize,
+        size: usize,
+        position: &Position,
+    ) -> Option<(usize, usize)> {
         let (min, max) = match position {
             Position::Plus => (offset + 1, offset + 1 + size),
             Position::Minus => {
@@ -182,7 +187,8 @@ impl Counter {
         size: usize,
         position: &Position,
     ) -> Option<Vec<u8>> {
-        Self::bounds(record.seq(), offset, size, position).map(|(min, max)| record.seq()[min..max].to_vec())
+        Self::bounds(record.seq(), offset, size, position)
+            .map(|(min, max)| record.seq()[min..max].to_vec())
     }
 
     /// Trims the reverse complemented sequence to the required boundaries
