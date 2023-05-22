@@ -155,7 +155,12 @@ impl Counter {
 
     /// Calculates the bounds of the trimmed sequence given a positional offset
     #[inline]
-    fn bounds(offset: usize, size: usize, position: &Position) -> Option<(usize, usize)> {
+    fn bounds(
+        seq: &[u8],
+        offset: usize,
+        size: usize,
+        position: &Position,
+    ) -> Option<(usize, usize)> {
         let (min, max) = match position {
             Position::Plus => (offset + 1, offset + 1 + size),
             Position::Minus => {
@@ -167,7 +172,11 @@ impl Counter {
             }
             _ => (offset, offset + size),
         };
-        Some((min, max))
+        if max > seq.len() {
+            return None;
+        } else {
+            Some((min, max))
+        }
     }
 
     /// Trims the forward sequence to the required boundaries
@@ -178,7 +187,8 @@ impl Counter {
         size: usize,
         position: &Position,
     ) -> Option<Vec<u8>> {
-        Self::bounds(offset, size, position).map(|(min, max)| record.seq()[min..max].to_vec())
+        Self::bounds(record.seq(), offset, size, position)
+            .map(|(min, max)| record.seq()[min..max].to_vec())
     }
 
     /// Trims the reverse complemented sequence to the required boundaries
@@ -189,7 +199,7 @@ impl Counter {
         size: usize,
         position: &Position,
     ) -> Option<Vec<u8>> {
-        Self::bounds(offset, size, position)
+        Self::bounds(record.seq(), offset, size, position)
             .map(|(min, max)| record.seq_rev_comp()[min..max].to_vec())
     }
 
@@ -244,7 +254,7 @@ impl Counter {
 #[cfg(test)]
 mod test {
 
-    use super::{Counter, Library, Permuter};
+    use super::{Counter, Library, Permuter, Position};
     use crate::Offset;
     use fxread::{FastaReader, FastxRead, Record};
 
@@ -307,5 +317,67 @@ mod test {
             false,
         );
         assert_eq!(*count.get_value(b"seq.0"), 1);
+    }
+
+    #[test]
+    fn bounds_checking_standard() {
+        let seq = b"ACTGACTGACTG".as_slice();
+        let offset = 4;
+        let size = 4;
+        let position = Position::Null;
+        let (min, max) = Counter::bounds(seq, offset, size, &position).unwrap();
+        assert_eq!(min, 4);
+        assert_eq!(max, 8);
+    }
+    #[test]
+    fn bounds_checking_plus() {
+        let seq = b"ACTGACTGACTG".as_slice();
+        let offset = 4;
+        let size = 4;
+        let position = Position::Plus;
+        let (min, max) = Counter::bounds(seq, offset, size, &position).unwrap();
+        assert_eq!(min, 5);
+        assert_eq!(max, 9);
+    }
+
+    #[test]
+    fn bounds_checking_minus() {
+        let seq = b"ACTGACTGACTG".as_slice();
+        let offset = 4;
+        let size = 4;
+        let position = Position::Minus;
+        let (min, max) = Counter::bounds(seq, offset, size, &position).unwrap();
+        assert_eq!(min, 3);
+        assert_eq!(max, 7);
+    }
+
+    #[test]
+    fn bounds_checking_standard_clipped() {
+        let seq = b"ACTGACT".as_slice();
+        let offset = 4;
+        let size = 4;
+        let position = Position::Null;
+        let res = Counter::bounds(seq, offset, size, &position);
+        assert!(res.is_none());
+    }
+
+    #[test]
+    fn bounds_checking_plus_clipped() {
+        let seq = b"ACTGACT".as_slice();
+        let offset = 4;
+        let size = 4;
+        let position = Position::Plus;
+        let res = Counter::bounds(seq, offset, size, &position);
+        assert!(res.is_none());
+    }
+
+    #[test]
+    fn bounds_checking_minus_clipped() {
+        let seq = b"ACTGAC".as_slice();
+        let offset = 4;
+        let size = 4;
+        let position = Position::Minus;
+        let res = Counter::bounds(seq, offset, size, &position);
+        assert!(res.is_none());
     }
 }
