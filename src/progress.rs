@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 /// Initializes a Multiprogress bar for parallel logging
@@ -11,7 +13,8 @@ pub fn initialize_multi_progress(
         .map(|_| {
             ProgressBar::new_spinner().with_style(
                 ProgressStyle::default_spinner()
-                    .template("{prefix} {spinner} [{elapsed_precise}] {msg}"),
+                    .template("{prefix} {spinner} [{elapsed_precise}] {msg}")
+                    .expect("Unable to build spinner"),
             )
         })
         .enumerate()
@@ -24,14 +27,16 @@ pub fn initialize_multi_progress(
 #[must_use]
 pub fn initialize_progress_bar() -> ProgressBar {
     ProgressBar::new_spinner().with_style(
-        ProgressStyle::default_spinner().template("{prefix} {spinner} [{elapsed_precise}] {msg}"),
+        ProgressStyle::default_spinner()
+            .template("{prefix} {spinner} [{elapsed_precise}] {msg}")
+            .expect("Unable to build spinner"),
     )
 }
 
 /// Starts a progress bar that is an optional reference
 pub fn start_progress_bar_ref(pb: Option<&ProgressBar>, msg: String) {
     if let Some(p) = pb {
-        p.enable_steady_tick(75);
+        p.enable_steady_tick(Duration::from_millis(75));
         p.set_message(msg);
     }
 }
@@ -47,7 +52,7 @@ pub fn finish_progress_bar_ref(pb: Option<&ProgressBar>, msg: String) {
 /// Starts an optional progress bar
 pub fn start_progress_bar(pb: &Option<ProgressBar>, msg: String) {
     if let Some(p) = pb {
-        p.enable_steady_tick(75);
+        p.enable_steady_tick(Duration::from_millis(75));
         p.set_message(msg);
     }
 }

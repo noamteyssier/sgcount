@@ -37,6 +37,9 @@ pub mod genemap;
 /// Module for utility functions regarding progress spinners
 pub mod progress;
 
+/// Module for utilities in the library
+pub mod utils;
+
 pub use count::count;
 pub use counter::Counter;
 pub use fxread::initialize_reader;
@@ -46,6 +49,7 @@ use offsetter::entropy_offset_group;
 pub use offsetter::{entropy_offset, Offset};
 pub use permutes::Permuter;
 use progress::{finish_progress_bar, initialize_progress_bar, start_progress_bar};
+use utils::{generate_sample_names, set_threads};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -55,11 +59,11 @@ struct Args {
     library_path: String,
 
     /// Filepath(s) of fastx (fastq, fasta, *.gz) sequences to map
-    #[clap(short, long, value_parser, min_values = 1, required = true)]
+    #[clap(short, long, value_parser, required = true, num_args = 1..)]
     input_paths: Vec<String>,
 
     /// Sample Names
-    #[clap(short = 'n', long, value_parser, min_values = 1, required = false)]
+    #[clap(short = 'n', long, value_parser, required = false, num_args = 1..)]
     sample_names: Option<Vec<String>>,
 
     /// Output filepath [default: stdout]
@@ -101,23 +105,6 @@ struct Args {
     /// Include zero count sgRNAs in output table
     #[clap(short = 'z', long)]
     include_zero: bool,
-}
-
-/// Sets the number of threads globally
-fn set_threads(threads: usize) {
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(threads)
-        .build_global()
-        .unwrap();
-}
-
-/// Generates default sample names
-fn generate_sample_names(input_paths: &[String]) -> Vec<String> {
-    input_paths
-        .iter()
-        .enumerate()
-        .map(|(idx, _)| format!("Sample.{:?}", idx))
-        .collect()
 }
 
 /// Calculates Offset if Required
