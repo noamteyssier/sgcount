@@ -37,16 +37,19 @@ pub mod genemap;
 /// Module for utility functions regarding progress spinners
 pub mod progress;
 
+/// Module for utilities in the library
+pub mod utils;
+
 pub use count::count;
 pub use counter::Counter;
 pub use fxread::initialize_reader;
 pub use genemap::GeneMap;
-use hashbrown::HashSet;
 pub use library::Library;
 use offsetter::entropy_offset_group;
 pub use offsetter::{entropy_offset, Offset};
 pub use permutes::Permuter;
 use progress::{finish_progress_bar, initialize_progress_bar, start_progress_bar};
+use utils::{generate_sample_names, set_threads};
 
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -102,48 +105,6 @@ struct Args {
     /// Include zero count sgRNAs in output table
     #[clap(short = 'z', long)]
     include_zero: bool,
-}
-
-/// Sets the number of threads globally
-fn set_threads(threads: usize) {
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(threads)
-        .build_global()
-        .unwrap();
-}
-
-/// Generates default sample names
-fn generate_sample_names(input_paths: &[String]) -> Vec<String> {
-    // calculate basenames of input files
-    let base_names = input_paths
-        .iter()
-        .map(|x| x.split('/').last().unwrap())
-        .map(|x| x.trim_end_matches(".gz"))
-        .map(|x| x.trim_end_matches(".fasta"))
-        .map(|x| x.trim_end_matches(".fastq"))
-        .map(|x| x.trim_end_matches(".fa"))
-        .map(|x| x.trim_end_matches(".fq"))
-        .map(|x| x.to_string())
-        .collect::<Vec<String>>();
-
-    let simple_names = input_paths
-        .iter()
-        .enumerate()
-        .map(|(idx, _)| format!("Sample.{:?}", idx))
-        .collect::<Vec<String>>();
-
-    // check if there are duplicate values
-    let mut seen = HashSet::new();
-    for name in base_names.iter() {
-        seen.insert(name.clone());
-    }
-
-    if seen.len() == base_names.len() {
-        base_names
-    } else {
-        eprintln!("WARNING: Duplicate Basenames Detected, Using incrementing sample names");
-        simple_names
-    }
 }
 
 /// Calculates Offset if Required
