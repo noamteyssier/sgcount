@@ -117,10 +117,12 @@ fn generate_sample_names(input_paths: &[String]) -> Vec<String> {
     // calculate basenames of input files
     let base_names = input_paths
         .iter()
-        .map(|x| x.split('/').last())
-        .map(|x| x.unwrap().replace(".gz", ""))
-        .map(|x| x.replace(".fastq", ""))
-        .map(|x| x.replace(".fq", ""))
+        .map(|x| x.split('/').last().unwrap())
+        .map(|x| x.trim_end_matches(".gz"))
+        .map(|x| x.trim_end_matches(".fasta"))
+        .map(|x| x.trim_end_matches(".fastq"))
+        .map(|x| x.trim_end_matches(".fa"))
+        .map(|x| x.trim_end_matches(".fq"))
         .map(|x| x.to_string())
         .collect::<Vec<String>>();
 
