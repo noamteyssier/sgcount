@@ -41,6 +41,7 @@ pub use count::count;
 pub use counter::Counter;
 pub use fxread::initialize_reader;
 pub use genemap::GeneMap;
+use hashbrown::HashSet;
 pub use library::Library;
 use offsetter::entropy_offset_group;
 pub use offsetter::{entropy_offset, Offset};
@@ -113,11 +114,34 @@ fn set_threads(threads: usize) {
 
 /// Generates default sample names
 fn generate_sample_names(input_paths: &[String]) -> Vec<String> {
-    input_paths
+    // calculate basenames of input files
+    let base_names = input_paths
+        .iter()
+        .map(|x| x.split('/').last())
+        .map(|x| x.unwrap().replace(".gz", ""))
+        .map(|x| x.replace(".fastq", ""))
+        .map(|x| x.replace(".fq", ""))
+        .map(|x| x.to_string())
+        .collect::<Vec<String>>();
+
+    let simple_names = input_paths
         .iter()
         .enumerate()
         .map(|(idx, _)| format!("Sample.{:?}", idx))
-        .collect()
+        .collect::<Vec<String>>();
+
+    // check if there are duplicate values
+    let mut seen = HashSet::new();
+    for name in base_names.iter() {
+        seen.insert(name.clone());
+    }
+
+    if seen.len() == base_names.len() {
+        base_names
+    } else {
+        eprintln!("WARNING: Duplicate Basenames Detected, Using incrementing sample names");
+        simple_names
+    }
 }
 
 /// Calculates Offset if Required
