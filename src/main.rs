@@ -56,11 +56,11 @@ struct Args {
     library_path: String,
 
     /// Filepath(s) of fastx (fastq, fasta, *.gz) sequences to map
-    #[clap(short, long, value_parser, min_values = 1, required = true)]
+    #[clap(short, long, value_parser, required = true, num_args = 1..)]
     input_paths: Vec<String>,
 
     /// Sample Names
-    #[clap(short = 'n', long, value_parser, min_values = 1, required = false)]
+    #[clap(short = 'n', long, value_parser, required = false, num_args = 1..)]
     sample_names: Option<Vec<String>>,
 
     /// Output filepath [default: stdout]

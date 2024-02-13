@@ -8,7 +8,6 @@ use anyhow::{bail, Result};
 use fxread::initialize_reader;
 use indicatif::ProgressBar;
 use rayon::prelude::*;
-use std::thread;
 
 /// Counts the number of matching sgRNA-Reads for a provided
 /// filepath
@@ -104,14 +103,11 @@ pub fn count(
     };
 
     // generate multiprogress and individual progress bars
-    let (mp, progress_bars) = if quiet {
+    let (_mp, progress_bars) = if quiet {
         (None, None)
     } else {
         initialize_multi_progress(sample_names)
     };
-
-    // start multiprogress if not quiet
-    let mp = mp.map(|m| thread::spawn(move || m.join()));
 
     // main counting function
     let results: Result<Vec<Counter>> = input_paths
@@ -134,11 +130,6 @@ pub fn count(
             )
         })
         .collect();
-
-    // join multiprogress if not quiet
-    if let Some(m) = mp {
-        m.join().unwrap()?
-    };
 
     write_results(
         output_path,

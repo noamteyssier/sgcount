@@ -15,10 +15,10 @@ categories = ["command-line-utilities", "science"]
 [dependencies]
 anyhow = "1.0.71"
 bstr = "1.5.0"
-clap = { version = "3.2.25", features = ["derive"] }
+clap = { version = "4.5.0", features = ["derive"] }
 fxread = "0.2.5"
-hashbrown = "0.12.3"
-indicatif = { version = "0.16.2", features = ["rayon"] }
+hashbrown = "0.14.3"
+indicatif = { version = "0.17.8", features = ["rayon"] }
 ndarray = "0.15.6"
 ndarray-stats = "0.5.1"
 rayon = "1.7.0"
