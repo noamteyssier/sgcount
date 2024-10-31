@@ -83,7 +83,6 @@ impl GeneMap {
             .values()
             .find(|alias| self.get(alias).is_none())
             .map(|alias| alias.to_vec())
-        // library.values().all(|alias| self.get(alias).is_some())
     }
 }
 
@@ -135,7 +134,8 @@ mod testing {
         let buffer = build_example_buffer();
         let genemap = super::GeneMap::new_from_buffer(buffer.as_bytes()).unwrap();
         let library = build_library();
-        assert!(genemap.validate_library(&library));
+        let missing = genemap.missing_aliases(&library);
+        assert!(missing.is_none());
     }
 
     #[test]
@@ -143,7 +143,8 @@ mod testing {
         let buffer = build_example_buffer();
         let genemap = super::GeneMap::new_from_buffer(buffer.as_bytes()).unwrap();
         let library = build_invalid_library();
-        assert!(!genemap.validate_library(&library));
+        let missing = genemap.missing_aliases(&library);
+        assert_eq!(missing.unwrap(), b"sgrna4");
     }
 
     #[test]
