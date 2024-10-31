@@ -1,3 +1,4 @@
+use anyhow::Result;
 use hashbrown::HashSet;
 
 /// Sets the number of threads globally
@@ -6,6 +7,11 @@ pub fn set_threads(threads: usize) {
         .num_threads(threads)
         .build_global()
         .unwrap();
+}
+
+/// Converts a vector of bytes to a string
+pub fn vec_to_nuc(vec: &[u8]) -> Result<String> {
+    Ok(std::str::from_utf8(vec)?.to_string())
 }
 
 /// Generates default sample names

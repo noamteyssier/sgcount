@@ -3,6 +3,7 @@ use crate::progress::{
     initialize_progress_bar, start_progress_bar, start_progress_bar_ref,
 };
 use crate::results::write_results;
+use crate::utils::vec_to_nuc;
 use crate::{Counter, GeneMap, Library, Offset, Permuter};
 use anyhow::{bail, Result};
 use fxread::initialize_reader;
@@ -87,7 +88,10 @@ pub fn count(
 
     // validate all library sgRNA aliases exist if genemap provided
     if let Some(g) = genemap {
-        assert!(g.validate_library(&library), "Missing sgRNAs in gene map");
+        if let Some(missing) = g.missing_aliases(&library) {
+            let missing_str = vec_to_nuc(&missing)?;
+            bail!("Missing sgRNA aliases in gene map: {:?}", missing_str);
+        }
     }
 
     // validate library size

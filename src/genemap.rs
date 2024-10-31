@@ -75,9 +75,14 @@ impl GeneMap {
 
     /// Validates that all aliases found within the library have an
     /// associated gene within this gene map
+    ///
+    /// If all aliases are found, returns None, otherwise returns the first alias that is not found
     #[must_use]
-    pub fn validate_library(&self, library: &Library) -> bool {
-        library.values().all(|alias| self.get(alias).is_some())
+    pub fn missing_aliases(&self, library: &Library) -> Option<Vec<u8>> {
+        library
+            .values()
+            .find(|alias| self.get(alias).is_none())
+            .map(|alias| alias.to_vec())
     }
 }
 
@@ -129,7 +134,8 @@ mod testing {
         let buffer = build_example_buffer();
         let genemap = super::GeneMap::new_from_buffer(buffer.as_bytes()).unwrap();
         let library = build_library();
-        assert!(genemap.validate_library(&library));
+        let missing = genemap.missing_aliases(&library);
+        assert!(missing.is_none());
     }
 
     #[test]
@@ -137,7 +143,8 @@ mod testing {
         let buffer = build_example_buffer();
         let genemap = super::GeneMap::new_from_buffer(buffer.as_bytes()).unwrap();
         let library = build_invalid_library();
-        assert!(!genemap.validate_library(&library));
+        let missing = genemap.missing_aliases(&library);
+        assert_eq!(missing.unwrap(), b"sgrna4");
     }
 
     #[test]
