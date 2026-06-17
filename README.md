@@ -5,6 +5,7 @@
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE.md)
 ![actions status](https://github.com/noamteyssier/sgcount/workflows/CI/badge.svg)
 [![codecov](https://codecov.io/github/noamteyssier/sgcount/branch/main/graph/badge.svg?token=IM36KMKJ9T)](https://codecov.io/github/noamteyssier/sgcount)
+[![DOI](https://zenodo.org/badge/512897760.svg)](https://doi.org/10.5281/zenodo.12774352)
 
 `sgcount` is a fast and flexible sgRNA counter for CRISPR screens.
 
